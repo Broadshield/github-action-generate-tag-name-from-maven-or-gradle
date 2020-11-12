@@ -1,0 +1,40 @@
+name: GitHub Tag and Release Cleanup Action
+description: >
+  This removes unused Tags and Releases that are created during the PR process.
+branding:
+  color: blue
+  icon: git-pull-request
+inputs:
+  default_version:
+    description: PR number to search for
+    required: false
+    default: ''
+  pr_number:
+    description: PR number to search for
+    required: false
+  branch:
+    description: branch to search for
+    required: false
+  tag_prefix:
+    description: Tag prefix used to search for the current version name to iterate
+    required: false
+  releases_only:
+    description: Search GitHub releases instead of Github Tags
+    required: false
+    default: "true"
+  sort_tags:
+    required: false
+    description: Sort the tags in version order
+    default: "true"
+  bump:
+    required: false
+    description: The version part to bump, can be major, minor, patch
+    default: patch
+  release_branch:
+    required: true
+    description: The release branch to bump
+
+runs:
+  using: "node12"
+  # main: "index.js"
+  main: "dist/index.js"
