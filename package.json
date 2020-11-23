@@ -22,7 +22,8 @@
     "test": "NODE_ENV=testing jest",
     "start": "node ./index.js",
     "build": "ncc build index.js --minify",
-    "build-debug": "ncc build index.js"
+    "build-debug": "ncc build index.js",
+    "build-docker": "docker build -t github-action-generate-tag-name-from-maven-or-gradle ."
   },
   "jest": {
     "testPathIgnorePatterns": [

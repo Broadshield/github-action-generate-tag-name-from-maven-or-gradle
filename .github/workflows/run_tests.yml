@@ -2,14 +2,25 @@ name: 💉 Push - Run Yarn Tests
 on:
   push:
 
+env:
+  NODE_VERSION: 15.2.1-alpine3.12
+
 jobs:
   unit-tests:
     if: (! contains(github.event.labels.*.name, 'NO_CI_TESTS'))
     runs-on: ubuntu-latest
+    container:
+          image: node:${{env.NODE_VERSION}}
+
     steps:
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: '15'
+      # - uses: docker://node:${{NODE_VERSION}}
+      # - uses: actions/setup-node@v2-beta
+      #   with:
+      #     node-version: '15'
+      - name: Show Node and Yarn Version
+        run: |
+          node --version
+          yarn --version
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn config get cacheFolder)"

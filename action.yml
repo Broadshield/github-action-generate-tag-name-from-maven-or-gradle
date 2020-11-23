@@ -39,6 +39,9 @@ inputs:
     description: The release branch to bump
 
 runs:
-  using: "node15"
-  main: "index.js"
+  using: "docker"
+  image: 'Dockerfile'
+  args:
+    NODE_VERSION: 15.2.1-alpine3.12
+  # main: "index.js"
   # main: "dist/index.js"
