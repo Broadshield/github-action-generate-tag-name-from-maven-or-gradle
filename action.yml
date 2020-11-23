@@ -9,6 +9,10 @@ inputs:
     description: PR number to search for
     required: false
     default: ''
+  filepath:
+    description: The path to the pom.xml or build.gradle file
+    required: true
+    default: './pom.xml'
   pr_number:
     description: PR number to search for
     required: false
