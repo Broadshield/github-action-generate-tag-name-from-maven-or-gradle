@@ -7,6 +7,9 @@ jobs:
     if: (! contains(github.event.labels.*.name, 'NO_CI_TESTS'))
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '15'
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
