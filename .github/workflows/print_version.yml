@@ -1,0 +1,27 @@
+name: 💉 Push - Print Version
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  unit-tests:
+    if: (! contains(github.event.labels.*.name, 'NO_CI_TESTS'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ./
+        id: generate-gradle
+        with:
+          release_branch: main
+          filepath: tests/build.gradle
+
+      - uses: ./
+        id: generate-maven
+        with:
+          release_branch: main
+          filepath: tests/pom.xml

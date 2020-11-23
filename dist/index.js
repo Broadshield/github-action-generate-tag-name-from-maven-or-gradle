@@ -144,7 +144,7 @@ Toolkit.run(async tools => {
         const pages = tool.endpoint.merge({ "owner": owner, "repo": repo, "per_page": 100 });
 
         const tags = [];
-        for await (const item of Tag.getItemsFromPages(pages, iterator = tools.github.paginate.iterator)) {
+        for await (const item of Tag.getItemsFromPages(pages, tools.github.paginate.iterator)) {
             const tag = (fromReleases ? item["tag_name"] : item["name"]);
             if (!tag.startsWith(tagPrefix)) {
                 continue;
