@@ -37,7 +37,16 @@ inputs:
   release_branch:
     required: true
     description: The release branch to bump
+# runs:
+#   using: "docker"
+#   image: 'Dockerfile'
+outputs:
+  tag_name:
+    description: The generated tag with the bump
+  app_version:
+    description: The App version found
+  search_prefix:
+    description: The search prefix used
 runs:
-  using: "docker"
-  image: 'Dockerfile'
-
+  using: 'node12'
+  main: 'dist/index.js'

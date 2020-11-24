@@ -1,4 +1,6 @@
 
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
 const { Toolkit } = require('actions-toolkit')
 const Maven = require('./lib/appVersionMaven.mjs')
 const Gradle = require('./lib/appVersionGradle.mjs')
@@ -33,8 +35,8 @@ Toolkit.run(async tools => {
     // It's somewhat safe to assume that the most recently created release is actually latest.
     const sortTagsDefault = (releases_only ? "false" : "true");
     const sortTags = (sort_tags || sortTagsDefault).toLowerCase() === "true";
-
-    const br = Utils.stripRefs(branch || ref)
+    const baseBranch = branch || ref
+    const br = Utils.stripRefs(baseBranch)
     const bump_item = br != release_branch ? 'build' : bump
     const pr = pr_number || number
 

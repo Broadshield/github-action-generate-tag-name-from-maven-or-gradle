@@ -23,7 +23,7 @@
     "start": "node ./index.js",
     "build": "ncc build index.js --minify",
     "build-debug": "ncc build index.js",
-    "build-docker": "docker build -t github-action-generate-tag-name-from-maven-or-gradle ."
+    "build-docker": "yarn run build-debug;docker build -t github-action-generate-tag-name-from-maven-or-gradle ."
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -36,7 +36,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "source .github/scripts/update_node_version.sh;yarn run build-debug; git add dist"
+      "pre-commit": ".github/scripts/update_node_version.sh;yarn run build-debug; git add dist"
     }
   }
 }

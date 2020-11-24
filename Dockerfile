@@ -8,12 +8,16 @@ LABEL "com.github.actions.color"="blue"
 LABEL "repository"="https://github.com/Broadshield/github-action-generate-tag-name-from-maven-or-gradle"
 LABEL "homepage"="https://github.com/Broadshield/github-action-generate-tag-name-from-maven-or-gradle"
 LABEL "maintainer"="Jamie Nelson <jamie@bitflight.io>"
+ENV NODE_ENV=production
+RUN mkdir -p /app
 
-# Copy over project files
-COPY . .
+COPY package.json .
+COPY yarn.lock .
 
 # Install dependencies
 RUN yarn
-
+# Copy over project files
+COPY lib .
+COPY index.js .
 # This is what GitHub will run
-ENTRYPOINT ["node", "dest/index.js"]
+ENTRYPOINT ["node", "index.js"]
