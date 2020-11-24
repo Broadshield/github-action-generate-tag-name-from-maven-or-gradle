@@ -37,11 +37,8 @@ inputs:
   release_branch:
     required: true
     description: The release branch to bump
-
 runs:
   using: "docker"
   image: 'Dockerfile'
   args:
     NODE_VERSION: 15.2.1-alpine3.12
-  # main: "index.js"
-  # main: "dist/index.js"
