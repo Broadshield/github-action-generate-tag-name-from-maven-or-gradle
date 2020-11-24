@@ -40,5 +40,4 @@ inputs:
 runs:
   using: "docker"
   image: 'Dockerfile'
-  args:
-    NODE_VERSION: 15.2.1-alpine3.12
+

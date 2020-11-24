@@ -1,5 +1,4 @@
-ARG NODE_VERSION=15.2.1-alpine3.12
-FROM node:${NODE_VERSION}
+FROM node:15-buster
 
 # A bunch of `LABEL` fields for GitHub to index
 LABEL "com.github.actions.name"="Generate tag name from Maven or Gradle"
@@ -17,4 +16,4 @@ COPY . .
 RUN yarn
 
 # This is what GitHub will run
-ENTRYPOINT ["node", "/index.js"]
+ENTRYPOINT ["node", "dest/index.js"]

@@ -1,12 +1,13 @@
-name: 💉 Push - Run Yarn Tests
-on:
+name: Push - Run Yarn Tests
+'on':
   push:
+    branches:
+      - '**'
 jobs:
   unit_tests:
-    if: (! contains(github.event.labels.*.name, 'NO_CI_TESTS'))
     runs-on: ubuntu-latest
     container:
-      image: node:15.2.1-alpine3.12
+      image: node:15-buster
     steps:
       - name: Show Node and Yarn Version
         run: |
@@ -24,8 +25,6 @@ jobs:
             ${{ runner.os }}-yarn-
       - uses: actions/checkout@v2
       - name: Run Yarn
-        run: |
-          yarn
+        run: yarn
       - name: Run Yarn Tests
-        run: |-
-          yarn test
+        run: yarn test

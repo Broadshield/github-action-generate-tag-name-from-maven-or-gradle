@@ -10,12 +10,18 @@ function debug_log() {
 function command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
+function prefix_sudo() {
+    if command_exists sudo && ! sudo -v >/dev/null 2>&1; then
+        echo sudo
+    fi
+}
 function installer() {
-    if command -v yum >/dev/null 2>&1; then
-        yum "$@"
-    elif command -v apt-get >/dev/null 2>&1; then
-        apt-get "$@"
-    elif command -v brew >/dev/null 2>&1; then
+    SUDO=$(prefix_sudo)
+    if command_exists yum; then
+        $SUDO yum "$@"
+    elif command_exists apt-get; then
+        $SUDO apt-get -q update && $SUDO apt-get "$@"
+    elif command_exists brew; then
         brew "$@"
     else
         debug_log "Can't install: " "$@"
@@ -44,11 +50,14 @@ function install_app() {
 }
 
 if [ "$(uname)" == "Darwin" ]; then
-    install_app jq
-    if ! command_exists yq; then
-        install_app python-yq
-    fi
+    command_exists pip3 || INSTALL_PIP=python3
+    install_app jq $INSTALL_PIP
+    command_exists yq || install_app python-yq
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    install_app jq
-    pip3 install yq
+    # Add python3 and pip3 to install list if they aren't there
+    command_exists pip3 || INSTALL_PIP=python3-pip
+    # install jq and pip3 if they aren't already installed
+    install_app jq $INSTALL_PIP
+    # install yq if its not already installed
+    command_exists yq || pip3 install yq
 fi

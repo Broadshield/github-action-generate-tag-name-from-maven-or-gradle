@@ -1,5 +1,5 @@
-name: 💉 Push - Print Version
-on:
+name: 🧪 Push - Print Version
+'on':
   push:
     branches:
       - "main"
@@ -7,36 +7,17 @@ on:
     branches:
       - "main"
 
-jobs:
-  unit-tests:
-    if: (! contains(github.event.labels.*.name, 'NO_CI_TESTS'))
+'jobs':
+  show_version:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: '15'
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
-
-      - uses: actions/cache@v2
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      - name: Run Yarn
-        run: |
-          yarn
-      - uses: ./
+      - uses: Broadshield/github-action-generate-tag-name-from-maven-or-gradle@main
         id: generate-gradle
         with:
           release_branch: main
           filepath: tests/build.gradle
 
-      - uses: ./
+      - uses: Broadshield/github-action-generate-tag-name-from-maven-or-gradle@main
         id: generate-maven
         with:
           release_branch: main
