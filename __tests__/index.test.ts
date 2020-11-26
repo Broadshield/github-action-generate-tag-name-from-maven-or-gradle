@@ -1,13 +1,11 @@
-import { app_version as maven_app_version } from '../src/appVersionMaven'
-import { app_version as gradle_app_version } from '../src/appVersionGradle'
+import {app_version as maven_app_version} from '../src/appVersionMaven'
+import {app_version as gradle_app_version} from '../src/appVersionGradle'
 import Utils from '../src/utils'
-import { Repo, VersionObject } from '../src/interfaces'
+import {Repo, VersionObject} from '../src/interfaces'
 import Tag from '../src/tag'
-import { Context } from '@actions/github/lib/context'
-
+import {Context} from '@actions/github/lib/context'
 
 const utils = new Utils()
-
 
 describe('Get Versions', () => {
   test('version from tests/pom.xml to equal 1.0.0', () => {
@@ -15,7 +13,9 @@ describe('Get Versions', () => {
   })
 
   test('version from tests/build.gradle to equal 1.0.0', () => {
-    expect(gradle_app_version('./__tests__/tests/build.gradle')).toBe('1.0.0-SNAPSHOT')
+    expect(gradle_app_version('./__tests__/tests/build.gradle')).toBe(
+      '1.0.0-SNAPSHOT'
+    )
   })
 })
 
@@ -85,7 +85,7 @@ describe('repoSplit utility', () => {
 
   beforeEach(() => {
     jest.resetModules() // most important - it clears the cache
-    process.env = { ...OLD_ENV } // make a copy
+    process.env = {...OLD_ENV} // make a copy
   })
 
   afterAll(() => {
@@ -101,13 +101,18 @@ describe('repoSplit utility', () => {
 
   test(`take null, has environment variable GITHUB_REPOSITORY available and returns object {owner: 'Broadshield', repo: 'api'}`, () => {
     process.env.GITHUB_REPOSITORY = repository
-    expect(utils.repoSplit(null, context)).toEqual({ owner: 'Broadshield', repo: 'api' })
+    expect(utils.repoSplit(null, context)).toEqual({
+      owner: 'Broadshield',
+      repo: 'api'
+    })
   })
 
   test(`take null, has context available and returns object {owner: 'Broadshield', repo: 'api'}`, () => {
     delete process.env.GITHUB_REPOSITORY
 
-    expect(utils.repoSplit(null, context)).toEqual({ owner: 'Broadshield', repo: 'api' })
+    expect(utils.repoSplit(null, context)).toEqual({
+      owner: 'Broadshield',
+      repo: 'api'
+    })
   })
-
 })
