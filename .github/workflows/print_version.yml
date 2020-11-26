@@ -9,7 +9,7 @@ name: 🧪 Push - Print Version
 
 'jobs':
   show_version:
-    runs-on: ubuntu-latest
+    runs-on: Ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         name: Checkout
@@ -17,10 +17,10 @@ name: 🧪 Push - Print Version
         id: generate-gradle
         with:
           release_branch: main
-          filepath: tests/build.gradle
+          filepath: ./__tests__/tests/build.gradle
 
       - uses: ./
         id: generate-maven
         with:
           release_branch: main
-          filepath: tests/pom.xml
+          filepath: ./__tests__/tests/pom.xml

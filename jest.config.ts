@@ -11,6 +11,7 @@ const config: Config.InitialOptions = {
   transform: {
     '^.+\\.ts$': 'ts-jest'
   },
+
   verbose: true
 }
 export default config
