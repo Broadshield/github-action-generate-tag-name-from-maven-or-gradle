@@ -69,7 +69,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": ".github/scripts/update_node_version.sh;yarn run build-debug; git add dist"
+      "pre-commit": ".github/scripts/update_node_version.sh;yarn run build; git add dist"
     }
   }
 }
