@@ -1,4 +1,4 @@
-FROM node:15-buster
+FROM node:12-alpine
 
 # A bunch of `LABEL` fields for GitHub to index
 LABEL "com.github.actions.name"="Generate tag name from Maven or Gradle"

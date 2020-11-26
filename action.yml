@@ -37,6 +37,9 @@ inputs:
   release_branch:
     required: true
     description: The release branch to bump
+  repository:
+    required: false
+    description: A named repository in the format Owner\repositoryName
 # runs:
 #   using: "docker"
 #   image: 'Dockerfile'
