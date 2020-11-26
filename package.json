@@ -14,9 +14,6 @@
     "gradle",
     "tagging"
   ],
-  "typeRoots": [
-    "src/@types"
-  ],
   "author": "Jamie Nelson <jamie@wearsafe.com>",
   "license": "MIT",
   "private": true,
@@ -49,7 +46,7 @@
   "scripts": {
     "test": "NODE_ENV=testing jest",
     "start": "node lib/main.ts",
-    "build": "tsc",
+    "build": "tsc --build tsconfig.eslint.json",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",

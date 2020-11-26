@@ -170,17 +170,7 @@ function getVersionStringPrefix(
     return `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
   }
 }
-// async function* getItemsFromPages(
-//   tool: RequestInterface,
-//   pages: Parameters<R>[0],
-//   octokit: Octokit
-// ) {
-//   for await (const page of octokit.paginate.iterator(tool, pages)) {
-//     for (const item of page.data) {
-//       yield item
-//     }
-//   }
-// }
+
 async function getLatestTag(
   owner: string,
   repo: string,
@@ -189,9 +179,6 @@ async function getLatestTag(
   sortTags: boolean,
   octokit: Octokit
 ): Promise<string> {
-  const tool = fromReleases
-    ? octokit.repos.listReleases
-    : octokit.repos.listTags
   const pages = octokit.endpoint.merge({
     owner,
     repo,
@@ -199,21 +186,30 @@ async function getLatestTag(
   })
   const tagHelper = new Tag()
   const tags = []
-  for await (const page of octokit.paginate.iterator(tool, pages)) {
-    for (const pageItem of page.data) {
-      for await (const item of pageItem) {
-        const tag = fromReleases ? item.get('tag_name') : item.get('name')
-        if (!tag.startsWith(tagPrefix)) {
-          continue
-        }
-        if (!sortTags) {
-          // Assume that the API returns the most recent tag(s) first.
-          return tag
-        }
-        tags.push(tag)
-      }
-    }
+  let allNames: string[]
+  if (fromReleases) {
+    allNames = await octokit.paginate(
+      octokit.repos.listReleases,
+      pages,
+      response => response.data.map(item => item.tag_name)
+    )
+  } else {
+    allNames = await octokit.paginate(octokit.repos.listTags, pages, response =>
+      response.data.map(item => item.name)
+    )
   }
+
+  for (const tag of allNames) {
+    if (!tag.startsWith(tagPrefix)) {
+      continue
+    }
+    if (!sortTags) {
+      // Assume that the API returns the most recent tag(s) first.
+      return tag
+    }
+    tags.push(tag)
+  }
+
   if (tags.length === 0) {
     return tagPrefix
   }
