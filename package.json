@@ -46,12 +46,11 @@
   "scripts": {
     "test": "NODE_ENV=testing jest",
     "start": "node lib/main.ts",
-    "build": "tsc --build tsconfig.eslint.json",
+    "build": "tsc --build tsconfig.json",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",
     "package": "ncc build --source-map --minify  --license licenses.txt",
-    "build-debug": "ncc build index.js",
     "build-docker": "yarn run build-debug;docker build -t github-action-generate-tag-name-from-maven-or-gradle .",
     "all": "yarn run build && yarn run format && yarn run lint && yarn run package && yarn test"
   },
