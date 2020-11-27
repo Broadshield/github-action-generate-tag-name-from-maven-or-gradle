@@ -179,11 +179,11 @@ async function getLatestTag(
   sortTags: boolean,
   octokit: Octokit
 ): Promise<string> {
-  const pages = octokit.endpoint.merge({
+  const pages = {
     owner,
     repo,
     per_page: 100
-  })
+  }
   const tagHelper = new Tag()
   const tags = []
   let allNames: string[]
