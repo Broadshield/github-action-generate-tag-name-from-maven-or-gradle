@@ -4,9 +4,17 @@ import {Octokit} from '@octokit/rest'
 // import {RequestInterface} from '@octokit/types'
 import {app_version as maven_app_version} from './appVersionMaven'
 import {app_version as gradle_app_version} from './appVersionGradle'
-import Utils from './utils'
-import {Repo, VersionObject} from './interfaces'
-import Tag from './tag'
+import {
+  stripRefs,
+  repoSplit,
+  normalize_version,
+  getVersionStringPrefix,
+  basename,
+  parseVersionString,
+  getLatestTag,
+  bumper
+} from './utils'
+import {Repo} from './interfaces'
 
 async function run(): Promise<void> {
   try {
@@ -14,7 +22,6 @@ async function run(): Promise<void> {
 
     const {event, number, ref} = context.payload
     core.info(`Event type is: ${event}`)
-    const utils = new Utils()
     const github_token = core.getInput('github_token', {required: false})
     const branch = core.getInput('branch', {required: false})
     const pr_number = core.getInput('pr_number', {required: false})
@@ -37,7 +44,7 @@ async function run(): Promise<void> {
     const sortTags =
       (`${sort_tags}` || sortTagsDefault).toLowerCase() === 'true'
     const baseBranch = branch || ref
-    const br = utils.stripRefs(baseBranch)
+    const br = stripRefs(baseBranch)
     const bump_item = br !== release_branch ? 'build' : bump
     const pr = pr_number || number
     const repository =
@@ -47,7 +54,7 @@ async function run(): Promise<void> {
     let repos: null | Repo = null
 
     try {
-      repos = utils.repoSplit(repository, context)
+      repos = repoSplit(repository, context)
     } catch (e) {
       core.setFailed(`Action failed with error: ${e}`)
     }
@@ -58,7 +65,7 @@ async function run(): Promise<void> {
       return
     }
 
-    const appVersion = utils.normalize_version(
+    const appVersion = normalize_version(
       maven_app_version(filepath) || gradle_app_version(filepath),
       default_version
     )
@@ -70,7 +77,7 @@ async function run(): Promise<void> {
       if (pr) {
         suffix = `PR${pr}`
       } else if (br) {
-        suffix = utils.basename(br)
+        suffix = basename(br)
       }
       searchPrefix = `${prefix}-${suffix}`
     } else {
@@ -101,120 +108,3 @@ async function run(): Promise<void> {
 }
 
 run()
-
-// Functions
-
-function bumper(fullTag: string, bumping: string): string {
-  // v1.2.3-PR1234.3
-  const search_re = /^(v)?(?<version>[0-9]+\.[0-9]+\.[0-9])(_[0-9])?(?<alpha>-.*)?(?<buildnumber>\.[0-9]+)?$/
-
-  const matcher = fullTag.match(search_re)
-  if (!matcher) {
-    throw Error(`Version to bump is null???`)
-  } else {
-    const groups = matcher.groups
-    if (!groups) {
-      throw Error(`No versions found in current tag??? ${fullTag}`)
-    } else {
-      const version = groups.version
-      const alpha = groups.alpha
-      const buildnumber = parseInt(groups.buildnumber || '0')
-
-      if (bumping === 'build') {
-        return `${version}-${alpha}.${buildnumber + 1}`
-      } else if (['major', 'minor', 'patch'].includes(bumping)) {
-        const versionObj = parseVersionString(version)
-        if (bumping === 'major') {
-          versionObj.major += 1
-          versionObj.minor = 0
-          versionObj.patch = 0
-        } else if (bumping === 'minor') {
-          versionObj.minor += 1
-          versionObj.patch = 0
-        } else if (bumping === 'patch') {
-          versionObj.patch += 1
-        }
-        return `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
-      } else {
-        throw Error(
-          `Bump value must be one of: major, minor, or patch. Instead '${bumping}' was given`
-        )
-      }
-    }
-  }
-}
-
-function parseVersionString(str: string): VersionObject {
-  const vObj: VersionObject = {major: 0, minor: 0, patch: 0}
-  const x = str.split('.')
-  // parse from string or default to 0 if can't parse
-  vObj.major = parseInt(x[0]) || 0
-  vObj.minor = parseInt(x[1]) || 0
-  vObj.patch = parseInt(x[2]) || 0
-  return vObj
-}
-
-function getVersionStringPrefix(
-  versionObj: VersionObject,
-  bumping: string
-): string {
-  if (['major', 'minor', 'patch'].includes(bumping)) {
-    if (bumping === 'major') {
-      return ``
-    } else if (bumping === 'minor') {
-      return `${versionObj.major}.`
-    } else {
-      return `${versionObj.major}.${versionObj.minor}`
-    }
-  } else {
-    return `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
-  }
-}
-
-async function getLatestTag(
-  owner: string,
-  repo: string,
-  tagPrefix: string,
-  fromReleases: boolean,
-  sortTags: boolean,
-  octokit: Octokit
-): Promise<string> {
-  const pages = {
-    owner,
-    repo,
-    per_page: 100
-  }
-  const tagHelper = new Tag()
-  const tags = []
-  let allNames: string[]
-  if (fromReleases) {
-    allNames = await octokit.paginate(
-      octokit.repos.listReleases,
-      pages,
-      response => response.data.map(item => item.tag_name)
-    )
-  } else {
-    allNames = await octokit.paginate(octokit.repos.listTags, pages, response =>
-      response.data.map(item => item.name)
-    )
-  }
-
-  for (const tag of allNames) {
-    if (!tag.startsWith(tagPrefix)) {
-      continue
-    }
-    if (!sortTags) {
-      // Assume that the API returns the most recent tag(s) first.
-      return tag
-    }
-    tags.push(tag)
-  }
-
-  if (tags.length === 0) {
-    return tagPrefix
-  }
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  tags.sort(tagHelper.cmpTags)
-  const [latestTag] = tags.slice(-1)
-  return latestTag
-}

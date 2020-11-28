@@ -1,13 +1,53 @@
 import {app_version as maven_app_version} from '../src/appVersionMaven'
 import {app_version as gradle_app_version} from '../src/appVersionGradle'
-import Utils from '../src/utils'
 import {Repo, VersionObject} from '../src/interfaces'
 import Tag from '../src/tag'
 import {Context} from '@actions/github/lib/context'
 
-const utils = new Utils()
+import {
+  stripRefs,
+  repoSplit,
+  normalize_version,
+  getVersionStringPrefix,
+  basename,
+  parseVersionString,
+  getLatestTag,
+  bumper
+} from '../src/utils'
 
 describe('Get Versions', () => {
+  const version1: VersionObject = {
+    major: 2,
+    minor: 3,
+    patch: 1,
+    label: undefined,
+    build: undefined,
+    with_v: undefined
+  }
+  const version2: VersionObject = {
+    major: 2,
+    minor: 3,
+    patch: 1,
+    label: undefined,
+    build: undefined,
+    with_v: 'v'
+  }
+  const version3: VersionObject = {
+    major: 2,
+    minor: 3,
+    patch: 1,
+    label: 'PR1234',
+    build: 1,
+    with_v: 'v'
+  }
+  const version4: VersionObject = {
+    major: 2,
+    minor: 3,
+    patch: 1,
+    label: 'PR1234',
+    build: 45,
+    with_v: 'v'
+  }
   test('version from tests/pom.xml to equal 1.0.0', () => {
     expect(maven_app_version('./__tests__/tests/pom.xml')).toBe('1.0.0')
   })
@@ -17,35 +57,49 @@ describe('Get Versions', () => {
       '1.0.0-SNAPSHOT'
     )
   })
+
+  test(`parseVersionString given string 2.3.1 should match ${JSON.stringify(version1)}`, () => {
+    expect(parseVersionString('2.3.1')).toEqual(version1);
+  })
+  test(`parseVersionString given string v2.3.1 should match ${JSON.stringify(version2)}`, () => {
+    expect(parseVersionString('v2.3.1')).toEqual(version2);
+  })
+  test(`parseVersionString given string v2.3.1-PR1234.1 should match ${JSON.stringify(version3)}`, () => {
+    expect(parseVersionString('v2.3.1-PR1234.1')).toEqual(version3);
+  })
+
+  test(`parseVersionString given string v2.3.1-PR1234.45 should match ${JSON.stringify(version4)}`, () => {
+    expect(parseVersionString('v2.3.1-PR1234.45')).toEqual(version4);
+  })
 })
 
 describe('normalize utility', () => {
   test('takes string "1.0.0-SNAPSHOT" and returns 1.0.0', () => {
-    expect(utils.normalize_version('1.0.0-SNAPSHOT')).toBe('1.0.0')
+    expect(normalize_version('1.0.0-SNAPSHOT')).toBe('1.0.0')
   })
 
   test('takes string "1.0.1-PR123.1" and returns 1.0.1', () => {
-    expect(utils.normalize_version('1.0.1-PR123.1')).toBe('1.0.1')
+    expect(normalize_version('1.0.1-PR123.1')).toBe('1.0.1')
   })
 
   test('takes string "" and returns the default value 0.0.1', () => {
-    expect(utils.normalize_version('', '0.0.1')).toBe('0.0.1')
+    expect(normalize_version('', '0.0.1')).toBe('0.0.1')
   })
 })
 
 describe('basename utility', () => {
   test('takes string "refs/tags/1.2.3" and returns 1.2.3', () => {
-    expect(utils.basename('refs/tags/1.2.3')).toBe('1.2.3')
+    expect(basename('refs/tags/1.2.3')).toBe('1.2.3')
   })
 })
 
 describe('stripRefs utility', () => {
   test('take refs/tags/1.2.3 and returns 1.2.3', () => {
-    expect(utils.stripRefs('refs/tags/1.2.3')).toBe('1.2.3')
+    expect(stripRefs('refs/tags/1.2.3')).toBe('1.2.3')
   })
 
   test('take refs/heads/feature/UNICORN-1234-new-thing and returns feature/UNICORN-1234-new-thing', () => {
-    expect(utils.stripRefs('refs/heads/feature/UNICORN-1234-new-thing')).toBe(
+    expect(stripRefs('refs/heads/feature/UNICORN-1234-new-thing')).toBe(
       'feature/UNICORN-1234-new-thing'
     )
   })
@@ -93,7 +147,7 @@ describe('repoSplit utility', () => {
   })
 
   test(`take string 'Broadshield/api' and returns object {owner: 'Broadshield', repo: 'api'}`, () => {
-    expect(utils.repoSplit(repository, context)).toEqual({
+    expect(repoSplit(repository, context)).toEqual({
       owner: 'Broadshield',
       repo: 'api'
     })
@@ -101,7 +155,7 @@ describe('repoSplit utility', () => {
 
   test(`take null, has environment variable GITHUB_REPOSITORY available and returns object {owner: 'Broadshield', repo: 'api'}`, () => {
     process.env.GITHUB_REPOSITORY = repository
-    expect(utils.repoSplit(null, context)).toEqual({
+    expect(repoSplit(null, context)).toEqual({
       owner: 'Broadshield',
       repo: 'api'
     })
@@ -110,7 +164,7 @@ describe('repoSplit utility', () => {
   test(`take null, has context available and returns object {owner: 'Broadshield', repo: 'api'}`, () => {
     delete process.env.GITHUB_REPOSITORY
 
-    expect(utils.repoSplit(null, context)).toEqual({
+    expect(repoSplit(null, context)).toEqual({
       owner: 'Broadshield',
       repo: 'api'
     })
