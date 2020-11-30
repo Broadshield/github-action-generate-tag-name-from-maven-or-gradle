@@ -58,18 +58,26 @@ describe('Get Versions', () => {
     )
   })
 
-  test(`parseVersionString given string 2.3.1 should match ${JSON.stringify(version1)}`, () => {
-    expect(parseVersionString('2.3.1')).toEqual(version1);
+  test(`parseVersionString given string 2.3.1 should match ${JSON.stringify(
+    version1
+  )}`, () => {
+    expect(parseVersionString('2.3.1')).toEqual(version1)
   })
-  test(`parseVersionString given string v2.3.1 should match ${JSON.stringify(version2)}`, () => {
-    expect(parseVersionString('v2.3.1')).toEqual(version2);
+  test(`parseVersionString given string v2.3.1 should match ${JSON.stringify(
+    version2
+  )}`, () => {
+    expect(parseVersionString('v2.3.1')).toEqual(version2)
   })
-  test(`parseVersionString given string v2.3.1-PR1234.1 should match ${JSON.stringify(version3)}`, () => {
-    expect(parseVersionString('v2.3.1-PR1234.1')).toEqual(version3);
+  test(`parseVersionString given string v2.3.1-PR1234.1 should match ${JSON.stringify(
+    version3
+  )}`, () => {
+    expect(parseVersionString('v2.3.1-PR1234.1')).toEqual(version3)
   })
 
-  test(`parseVersionString given string v2.3.1-PR1234.45 should match ${JSON.stringify(version4)}`, () => {
-    expect(parseVersionString('v2.3.1-PR1234.45')).toEqual(version4);
+  test(`parseVersionString given string v2.3.1-PR1234.45 should match ${JSON.stringify(
+    version4
+  )}`, () => {
+    expect(parseVersionString('v2.3.1-PR1234.45')).toEqual(version4)
   })
 })
 

@@ -85,7 +85,7 @@ export function bumper(fullTag: string, bumping: string): string {
 export function parseVersionString(str: string): VersionObject {
   const vObj: VersionObject = {major: 0, minor: 0, patch: 0}
 
-  const search_re = /^(?<v>v)?(?<version>[\d]+\.[\d]+\.[\d]+)(_[\d]+)?([-_])?(?<label>[-_\/0-9a-zA-Z]+)?(\.(?<build>[\d]+))?$/
+  const search_re = /^(?<v>v)?(?<version>[\d]+\.[\d]+\.[\d]+)(_[\d]+)?([-_])?(?<label>[-_/0-9a-zA-Z]+)?(\.(?<build>[\d]+))?$/
   const matcher = str?.match(search_re)
   if (
     matcher === null ||

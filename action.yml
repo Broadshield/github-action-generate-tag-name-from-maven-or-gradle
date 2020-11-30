@@ -1,12 +1,12 @@
-name: GitHub Tag and Release Cleanup Action
+name: Generate Tag Name from Maven or Gradle
 description: >
-  This removes unused Tags and Releases that are created during the PR process.
+  Use the version found in the pom.xml or gradle.build as the reference tag for bumping
 branding:
   color: blue
   icon: git-pull-request
 inputs:
   default_version:
-    description: PR number to search for
+    description: The default tag to use if no tags exist
     required: false
     default: ''
   filepath:
@@ -25,11 +25,11 @@ inputs:
   releases_only:
     description: Search GitHub releases instead of Github Tags
     required: false
-    default: "true"
+    default: 'true'
   sort_tags:
     required: false
     description: Sort the tags in version order
-    default: "true"
+    default: 'true'
   bump:
     required: false
     description: The version part to bump, can be major, minor, patch

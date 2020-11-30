@@ -70,10 +70,9 @@ async function run(): Promise<void> {
       default_version
     )
     const prefix = tag_prefix || appVersion
-
+    let suffix: string | null = 'alpha'
     let searchPrefix
     if (bump_item === 'build') {
-      let suffix: string | null = 'alpha'
       if (pr) {
         suffix = `PR${pr}`
       } else if (br) {
@@ -99,6 +98,10 @@ async function run(): Promise<void> {
     core.setOutput('tag_name', tag_name)
     core.setOutput('app_version', appVersion)
     core.setOutput('search_prefix', searchPrefix)
+    core.setOutput('prefix', prefix)
+    core.setOutput('suffix', suffix)
+    core.setOutput('bump_item', bump_item)
+    core.setOutput('latest_git_tag', latestGitTag)
     core.info(`Tag Name: ${tag_name}`)
     core.info(`App Version: ${appVersion}`)
     core.info(`Search Prefix: ${searchPrefix}`)
