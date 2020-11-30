@@ -20,8 +20,9 @@ async function run(): Promise<void> {
   try {
     const {context} = github
 
-    const {event, number, ref} = context.payload
-    core.info(`Event type is: ${event}`)
+    const {number, ref} = context.payload
+    const payload = JSON.stringify(github.context.payload, undefined, 2)
+    core.info(`The event payload: ${payload}`)
     const github_token = core.getInput('github_token', {required: false})
     const branch = core.getInput('branch', {required: false})
     const pr_number = core.getInput('pr_number', {required: false})
@@ -33,12 +34,12 @@ async function run(): Promise<void> {
     const sort_tags = core.getInput('sort_tags', {required: false}) === 'true'
     const bump = core.getInput('bump', {required: false})
     const release_branch = core.getInput('release_branch', {required: true})
-
+    core.debug('Loading octokit: started')
     const octokit = new Octokit({
       auth: github_token,
       userAgent: 'github-action-generate-tag-name-from-maven-or-gradle v1.0.0'
     })
-
+    core.debug('Loading octokit: completed')
     // It's somewhat safe to assume that the most recently created release is actually latest.
     const sortTagsDefault = releases_only ? 'false' : 'true'
     const sortTags =
