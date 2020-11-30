@@ -3,6 +3,11 @@ export interface Repo {
   repo: string
 }
 
+export interface VersionPrefixes {
+  without_v: string
+  with_v: string
+}
+
 export interface VersionObject {
   major: number
   minor: number

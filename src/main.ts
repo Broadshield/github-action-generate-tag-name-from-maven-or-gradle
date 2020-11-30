@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {Octokit} from '@octokit/rest'
+// import {Octokit} from '@octokit/rest'
 // import {RequestInterface} from '@octokit/types'
 import {app_version as maven_app_version} from './appVersionMaven'
 import {app_version as gradle_app_version} from './appVersionGradle'
@@ -12,7 +12,8 @@ import {
   basename,
   parseVersionString,
   getLatestTag,
-  bumper
+  bumper,
+  getVersionPrefixes
 } from './utils'
 import {Repo} from './interfaces'
 
@@ -20,12 +21,18 @@ async function run(): Promise<void> {
   try {
     const {context} = github
 
-    const {number, ref} = context.payload
-    const payload = JSON.stringify(github.context.payload, undefined, 2)
-    core.info(`The event payload: ${payload}`)
-    const github_token = core.getInput('github_token', {required: false})
+    const {ref} = context.payload
+    // const payload = JSON.stringify(github.context.payload, undefined, 2)
+    // core.debug(`The event payload: ${payload}`)
+    const github_token =
+      core.getInput('github_token', {required: false}) ||
+      process.env.GITHUB_TOKEN ||
+      null
     const branch = core.getInput('branch', {required: false})
-    const pr_number = core.getInput('pr_number', {required: false})
+    const pr =
+      core.getInput('pr_number', {required: false}) ||
+      context.payload.number ||
+      null
     const filepath = core.getInput('filepath', {required: true})
     const default_version = core.getInput('default_version', {required: false})
     const tag_prefix = core.getInput('tag_prefix', {required: false})
@@ -34,11 +41,26 @@ async function run(): Promise<void> {
     const sort_tags = core.getInput('sort_tags', {required: false}) === 'true'
     const bump = core.getInput('bump', {required: false})
     const release_branch = core.getInput('release_branch', {required: true})
+    /*  TODO: Add v prepending */
+    const prepend_v = core.getInput('prepend_v', {required: false}) === 'true'
+    const ignore_v_when_searching =
+      core.getInput('ignore_v_when_searching', {
+        required: false
+      }) === 'true'
+
     core.debug('Loading octokit: started')
-    const octokit = new Octokit({
-      auth: github_token,
-      userAgent: 'github-action-generate-tag-name-from-maven-or-gradle v1.0.0'
-    })
+    let octokit
+    if (!github_token) {
+      core.setFailed('github_token not supplied')
+      return
+    } else {
+      octokit = github.getOctokit(github_token)
+    }
+
+    // new Octokit({
+    //   auth: github_token,
+    //   userAgent: 'github-action-generate-tag-name-from-maven-or-gradle v1.0.0'
+    // })
     core.debug('Loading octokit: completed')
     // It's somewhat safe to assume that the most recently created release is actually latest.
     const sortTagsDefault = releases_only ? 'false' : 'true'
@@ -47,10 +69,10 @@ async function run(): Promise<void> {
     const baseBranch = branch || ref
     const br = stripRefs(baseBranch)
     const bump_item = br !== release_branch ? 'build' : bump
-    const pr = pr_number || number
     const repository =
       core.getInput('repository', {required: false}) ||
-      process.env.GITHUB_REPOSITORY
+      process.env.GITHUB_REPOSITORY ||
+      null
 
     let repos: null | Repo = null
 
@@ -93,10 +115,17 @@ async function run(): Promise<void> {
       searchPrefix,
       releases_only,
       sortTags,
+      ignore_v_when_searching,
       octokit
     )
     const tag_name = bumper(latestGitTag, bump_item)
-    core.setOutput('tag_name', tag_name)
+    const tagOptions = getVersionPrefixes(tag_name)
+    core.setOutput('tag_name_with_v', tagOptions.with_v)
+    core.setOutput('tag_name_without_v', tagOptions.without_v)
+    core.setOutput(
+      'tag_name',
+      prepend_v ? tagOptions.with_v : tagOptions.without_v
+    )
     core.setOutput('app_version', appVersion)
     core.setOutput('search_prefix', searchPrefix)
     core.setOutput('prefix', prefix)
