@@ -1,12 +1,14 @@
-name: GitHub Tag and Release Cleanup Action
-description: >
-  This removes unused Tags and Releases that are created during the PR process.
+name: 🏷️ Generate Tag Name from Maven or Gradle
+description: Use the version found in the pom.xml or gradle.build as the reference tag for bumping
 branding:
   color: blue
   icon: git-pull-request
 inputs:
+  github_token:
+    description: The Github Token to authenticate with
+    required: false
   default_version:
-    description: PR number to search for
+    description: The default tag to use if no tags exist
     required: false
     default: ''
   filepath:
@@ -25,11 +27,11 @@ inputs:
   releases_only:
     description: Search GitHub releases instead of Github Tags
     required: false
-    default: "true"
+    default: 'true'
   sort_tags:
     required: false
     description: Sort the tags in version order
-    default: "true"
+    default: 'true'
   bump:
     required: false
     description: The version part to bump, can be major, minor, patch
@@ -37,9 +39,18 @@ inputs:
   release_branch:
     required: true
     description: The release branch to bump
-# runs:
-#   using: "docker"
-#   image: 'Dockerfile'
+  repository:
+    required: false
+    description: A named repository in the format Owner\repositoryName
+  prepend_v:
+    required: false
+    description: Prepend a v to tags. i.e. v1.0.0
+    default: 'true'
+  ignore_v_when_searching:
+    required: false
+    description: Searches for tags that have a 'v' at the start and without
+    default: 'true'
+
 outputs:
   tag_name:
     description: The generated tag with the bump

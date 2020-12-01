@@ -5,9 +5,9 @@ name: Push - Run Yarn Tests
       - '**'
 jobs:
   unit_tests:
-    runs-on: ubuntu-latest
+    runs-on: Ubuntu-20.04
     container:
-      image: node:15-buster
+      image: node:12-alpine
     steps:
       - uses: actions/checkout@v2
         name: Checkout
@@ -26,7 +26,6 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-
       - name: Run Yarn
         run: yarn
       - name: Run Yarn Tests
