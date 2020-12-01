@@ -99,7 +99,7 @@ async function run(): Promise<void> {
       if (pr) {
         suffix = `PR${pr}`
       } else if (br) {
-        suffix = basename(br)?.replace('.', '-')
+        suffix = basename(br)?.replace(/\./g, '-')
       }
       searchPrefix = `${prefix}-${suffix}`
     } else {
