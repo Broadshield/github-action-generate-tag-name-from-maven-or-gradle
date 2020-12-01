@@ -67,7 +67,7 @@ async function run(): Promise<void> {
     const sortTags =
       (`${sort_tags}` || sortTagsDefault).toLowerCase() === 'true'
     const baseBranch = branch || ref
-    const br = stripRefs(baseBranch)
+    const br = stripRefs(baseBranch)?.replace('.', '-')
     const bump_item = br !== release_branch ? 'build' : bump
     const repository =
       core.getInput('repository', {required: false}) ||
