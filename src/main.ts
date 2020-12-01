@@ -67,7 +67,7 @@ async function run(): Promise<void> {
     const sortTags =
       (`${sort_tags}` || sortTagsDefault).toLowerCase() === 'true'
     const baseBranch = branch || ref
-    const br = stripRefs(baseBranch)?.replace('.', '-')
+    const br = stripRefs(baseBranch)
     const bump_item = br !== release_branch ? 'build' : bump
     const repository =
       core.getInput('repository', {required: false}) ||
@@ -93,13 +93,13 @@ async function run(): Promise<void> {
       default_version
     )
     const prefix = tag_prefix || appVersion
-    let suffix: string | null = 'alpha'
+    let suffix: string | null | undefined = 'alpha'
     let searchPrefix
     if (bump_item === 'build') {
       if (pr) {
         suffix = `PR${pr}`
       } else if (br) {
-        suffix = basename(br)
+        suffix = basename(br)?.replace('.', '-')
       }
       searchPrefix = `${prefix}-${suffix}`
     } else {
