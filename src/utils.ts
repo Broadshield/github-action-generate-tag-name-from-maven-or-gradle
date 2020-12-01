@@ -1,7 +1,7 @@
 import {Context} from '@actions/github/lib/context'
 import {Repo, VersionObject, VersionPrefixes} from './interfaces'
 // import {Octokit} from '@octokit/rest'
-import Tag from './tag'
+import {cmpTags} from './tag'
 import * as core from '@actions/core'
 import {GitHub} from '@actions/github/lib/utils'
 
@@ -210,7 +210,7 @@ export async function getLatestTag(
     repo,
     per_page: 100
   }
-  const tagHelper = new Tag()
+
   const versionPrefixes = getVersionPrefixes(tagPrefix)
   const tags = []
   let allNames: string[]
@@ -258,8 +258,7 @@ export async function getLatestTag(
     `getLatestTag found ${tags.length} tags starting with prefix ${tagPrefix}`
   )
   core.debug(`getLatestTag found these tags: ${JSON.stringify(tags)}`)
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  tags.sort(tagHelper.cmpTags)
+  tags.sort(cmpTags)
   const [latestTag] = tags.slice(-1)
   core.debug(`getLatestTag returns ${latestTag}`)
   return latestTag
