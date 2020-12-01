@@ -1,7 +1,7 @@
 import {app_version as maven_app_version} from '../src/appVersionMaven'
 import {app_version as gradle_app_version} from '../src/appVersionGradle'
 import {Repo, VersionObject} from '../src/interfaces'
-import Tag from '../src/tag'
+import {cmpTags} from '../src/tag'
 import {Context} from '@actions/github/lib/context'
 
 import {

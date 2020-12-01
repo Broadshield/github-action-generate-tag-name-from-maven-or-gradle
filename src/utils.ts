@@ -120,7 +120,7 @@ export function bumper(fullTag: string, bumping: string): string {
 export function parseVersionString(str: string): VersionObject {
   const vObj: VersionObject = {major: 0, minor: 0, patch: 0}
 
-  const search_re = /^(?<v>v)?(?<version>[\d]+\.[\d]+\.[\d]+)(_[\d]+)?([-_])?(?<label>[-_/0-9a-zA-Z]+)?(\.(?<build>[\d]+))?$/
+  const search_re = /^(?<v>v)?(?<version>[\d]+\.[\d]+\.[\d]+)(_[\d]+)?([-_])?(?<label>[-_/0-9a-zA-Z]+(v[\d]+\.[\d]+\.[\d]+)?)?(\.(?<build>[\d]+))?$/
   const matcher = str?.match(search_re)
   core.debug(`parseVersionString passed ${str}`)
   if (
@@ -128,7 +128,7 @@ export function parseVersionString(str: string): VersionObject {
     matcher.groups === undefined ||
     matcher.groups.version === undefined
   ) {
-    throw new Error("Version can't be found in string")
+    throw new Error("parseVersionString: Version can't be found in string")
   }
 
   const groups = matcher.groups
@@ -185,7 +185,7 @@ export function getVersionPrefixes(str: string): VersionPrefixes {
     matcher.groups === undefined ||
     matcher.groups.version === undefined
   ) {
-    throw new Error("Version can't be found in string")
+    throw new Error("getVersionPrefixes: Version can't be found in string")
   }
 
   const groups = matcher.groups
