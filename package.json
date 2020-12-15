@@ -24,9 +24,10 @@
     "@octokit/rest": "^18.0.9",
     "fast-xml-parser": "^3.17.4",
     "java-properties": "^1.0.2"
+
   },
   "devDependencies": {
-    "webpack-cli": "^4.2.0",
+    "jest-junit": "^12.0.0",
     "@tsconfig/node12": "^1.0.7",
     "@types/jest": "^26.0.15",
     "@types/node": "^14.14.10",
@@ -45,10 +46,12 @@
     "ts-loader": "^8.0.11",
     "ts-node": "^9.0.0",
     "typescript": "^4.1.2",
-    "webpack": "^5.8.0"
+    "webpack": "^5.8.0",
+    "webpack-cli": "^4.2.0"
   },
   "scripts": {
     "test": "NODE_ENV=testing jest",
+    "test-ci": "NODE_ENV=testing jest --ci --reporters=default --reporters=jest-junit",
     "start": "node lib/main.ts",
     "build": "rm -rf ./lib;npx webpack --config webpack.config.cjs",
     "format": "prettier --write **/*.ts",
@@ -67,6 +70,11 @@
     "coveragePathIgnorePatterns": [
       "/node_modules/"
     ]
+  },
+  "jest-junit": {
+    "suiteNameTemplate": "{filepath}",
+    "classNameTemplate": "{classname}",
+    "titleTemplate": "{title}"
   },
   "husky": {
     "hooks": {

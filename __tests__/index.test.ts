@@ -1,7 +1,6 @@
 import {app_version as maven_app_version} from '../src/appVersionMaven'
 import {app_version as gradle_app_version} from '../src/appVersionGradle'
-import {Repo, VersionObject} from '../src/interfaces'
-import {cmpTags} from '../src/tag'
+import {Repo, VersionObject, VersionObjectInitializer} from '../src/interfaces'
 import {Context} from '@actions/github/lib/context'
 
 import {
@@ -16,38 +15,28 @@ import {
 } from '../src/utils'
 
 describe('Get Versions', () => {
-  const version1: VersionObject = {
-    major: 2,
-    minor: 3,
-    patch: 1,
-    label: undefined,
-    build: undefined,
-    with_v: undefined
-  }
-  const version2: VersionObject = {
-    major: 2,
-    minor: 3,
-    patch: 1,
-    label: undefined,
-    build: undefined,
-    with_v: 'v'
-  }
-  const version3: VersionObject = {
-    major: 2,
-    minor: 3,
-    patch: 1,
-    label: 'PR1234',
-    build: 1,
-    with_v: 'v'
-  }
-  const version4: VersionObject = {
-    major: 2,
-    minor: 3,
-    patch: 1,
-    label: 'PR1234',
-    build: 45,
-    with_v: 'v'
-  }
+  let versionObj = VersionObjectInitializer()
+    versionObj.major = 2
+    versionObj.minor = 3
+    versionObj.patch = 1
+
+  const version1 = versionObj
+
+  const version2 = versionObj
+    version2.with_v = 'v'
+  
+  const version3 = versionObj
+    version3.label_prefix = '-'
+    version3.label = 'PR1234'
+    version3.build = 1
+    version3.with_v = 'v'
+  
+  const version4 = versionObj
+    version4.label_prefix = '-'
+    version4.label = 'PR1234'
+    version4.build = 45
+    version4.with_v = 'v'
+  
   test('version from tests/pom.xml to equal 1.0.0', () => {
     expect(maven_app_version('./__tests__/tests/pom.xml')).toBe('1.0.0')
   })
@@ -61,23 +50,23 @@ describe('Get Versions', () => {
   test(`parseVersionString given string 2.3.1 should match ${JSON.stringify(
     version1
   )}`, () => {
-    expect(parseVersionString('2.3.1')).toEqual(version1)
+    expect(parseVersionString('2.3.1')).toStrictEqual(version1)
   })
   test(`parseVersionString given string v2.3.1 should match ${JSON.stringify(
     version2
   )}`, () => {
-    expect(parseVersionString('v2.3.1')).toEqual(version2)
+    expect(parseVersionString('v2.3.1')).toStrictEqual(version2)
   })
   test(`parseVersionString given string v2.3.1-PR1234.1 should match ${JSON.stringify(
     version3
   )}`, () => {
-    expect(parseVersionString('v2.3.1-PR1234.1')).toEqual(version3)
+    expect(parseVersionString('v2.3.1-PR1234.1')).toStrictEqual(version3)
   })
 
   test(`parseVersionString given string v2.3.1-PR1234.45 should match ${JSON.stringify(
     version4
   )}`, () => {
-    expect(parseVersionString('v2.3.1-PR1234.45')).toEqual(version4)
+    expect(parseVersionString('v2.3.1-PR1234.45')).toStrictEqual(version4)
   })
 })
 
@@ -116,6 +105,10 @@ describe('stripRefs utility', () => {
 describe('repoSplit utility', () => {
   const OLD_ENV = process.env
   const repository = 'Broadshield/api'
+  const result: Repo = {
+    owner: 'Broadshield',
+    repo: 'api'
+  }
   const context: Context = {
     eventName: 'push',
     ref: '/refs/tags/1.0.0',
@@ -154,27 +147,18 @@ describe('repoSplit utility', () => {
     process.env = OLD_ENV // restore old env
   })
 
-  test(`take string 'Broadshield/api' and returns object {owner: 'Broadshield', repo: 'api'}`, () => {
-    expect(repoSplit(repository, context)).toEqual({
-      owner: 'Broadshield',
-      repo: 'api'
-    })
+  test(`take string 'Broadshield/api' and returns object ${JSON.stringify(result)}`, () => {
+    expect(repoSplit(repository, context)).toStrictEqual(result)
   })
 
-  test(`take null, has environment variable GITHUB_REPOSITORY available and returns object {owner: 'Broadshield', repo: 'api'}`, () => {
+  test(`take null, has environment variable GITHUB_REPOSITORY available and returns object ${JSON.stringify(result)}`, () => {
     process.env.GITHUB_REPOSITORY = repository
-    expect(repoSplit(null, context)).toEqual({
-      owner: 'Broadshield',
-      repo: 'api'
-    })
+    expect(repoSplit(null, context)).toStrictEqual(result)
   })
 
-  test(`take null, has context available and returns object {owner: 'Broadshield', repo: 'api'}`, () => {
+  test(`take null, has context available and returns object ${JSON.stringify(result)}`, () => {
     delete process.env.GITHUB_REPOSITORY
 
-    expect(repoSplit(null, context)).toEqual({
-      owner: 'Broadshield',
-      repo: 'api'
-    })
+    expect(repoSplit(null, context)).toStrictEqual(result)
   })
 })
