@@ -16,27 +16,27 @@ import {
 
 describe('Get Versions', () => {
   let versionObj = VersionObjectInitializer()
-    versionObj.major = 2
-    versionObj.minor = 3
-    versionObj.patch = 1
+  versionObj.major = 2
+  versionObj.minor = 3
+  versionObj.patch = 1
 
   const version1 = versionObj
 
   const version2 = versionObj
-    version2.with_v = 'v'
-  
+  version2.with_v = 'v'
+
   const version3 = versionObj
-    version3.label_prefix = '-'
-    version3.label = 'PR1234'
-    version3.build = 1
-    version3.with_v = 'v'
-  
+  version3.label_prefix = '-'
+  version3.label = 'PR1234'
+  version3.build = 1
+  version3.with_v = 'v'
+
   const version4 = versionObj
-    version4.label_prefix = '-'
-    version4.label = 'PR1234'
-    version4.build = 45
-    version4.with_v = 'v'
-  
+  version4.label_prefix = '-'
+  version4.label = 'PR1234'
+  version4.build = 45
+  version4.with_v = 'v'
+
   test('version from tests/pom.xml to equal 1.0.0', () => {
     expect(maven_app_version('./__tests__/tests/pom.xml')).toBe('1.0.0')
   })
@@ -147,16 +147,22 @@ describe('repoSplit utility', () => {
     process.env = OLD_ENV // restore old env
   })
 
-  test(`take string 'Broadshield/api' and returns object ${JSON.stringify(result)}`, () => {
+  test(`take string 'Broadshield/api' and returns object ${JSON.stringify(
+    result
+  )}`, () => {
     expect(repoSplit(repository, context)).toStrictEqual(result)
   })
 
-  test(`take null, has environment variable GITHUB_REPOSITORY available and returns object ${JSON.stringify(result)}`, () => {
+  test(`take null, has environment variable GITHUB_REPOSITORY available and returns object ${JSON.stringify(
+    result
+  )}`, () => {
     process.env.GITHUB_REPOSITORY = repository
     expect(repoSplit(null, context)).toStrictEqual(result)
   })
 
-  test(`take null, has context available and returns object ${JSON.stringify(result)}`, () => {
+  test(`take null, has context available and returns object ${JSON.stringify(
+    result
+  )}`, () => {
     delete process.env.GITHUB_REPOSITORY
 
     expect(repoSplit(null, context)).toStrictEqual(result)

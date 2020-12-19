@@ -149,14 +149,12 @@ export function parseVersionString(str: string): VersionObject {
   core.debug(`parseVersionString passed ${str}`)
   if (
     matcher === null ||
-    matcher.groups === undefined ||
-    matcher.groups.version === undefined
+    matcher.groups === undefined
   ) {
     throw new Error("parseVersionString: Version can't be found in string")
   }
 
   const groups = matcher.groups
-  const version = groups.version
 
   vObj.with_v = groups.v || undefined
   // parse from string or default to 0 if can't parse
