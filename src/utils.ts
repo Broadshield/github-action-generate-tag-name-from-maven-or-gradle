@@ -147,10 +147,7 @@ export function parseVersionString(str: string): VersionObject {
   const search_re = version_regex
   const matcher = str?.match(search_re)
   core.debug(`parseVersionString passed ${str}`)
-  if (
-    matcher === null ||
-    matcher.groups === undefined
-  ) {
+  if (matcher === null || matcher.groups === undefined) {
     throw new Error("parseVersionString: Version can't be found in string")
   }
 
