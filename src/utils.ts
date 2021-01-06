@@ -239,7 +239,7 @@ export async function getLatestTag(
 
   const versionPrefixes = getVersionPrefixes(tagPrefix)
   const tags: VersionObject[] = []
-  let allNames: string[]
+
   let search_str
 
   if (ignore_v_when_searching) {
@@ -248,34 +248,41 @@ export async function getLatestTag(
     search_str = `^${tagPrefix}`
   }
   const search_re = RegExp(search_str)
-  if (fromReleases) {
-    allNames = await octokit.paginate(
-      octokit.repos.listReleases,
-      pages,
-      response => response.data.map(item => item.tag_name)
-    )
-    core.debug(
-      `getLatestTag received tags from releases: found ${allNames.length}`
-    )
-  } else {
-    allNames = await octokit.paginate(octokit.repos.listTags, pages, response =>
-      response.data.map(item => item.name)
-    )
-    core.debug(`getLatestTag received tags from tags: found ${allNames.length}`)
+  async function createTagList(_fromReleases: boolean): Promise<string[]> {
+    let allNames: string[]
+    if (_fromReleases) {
+      allNames = await octokit.paginate(
+        octokit.repos.listReleases,
+        pages,
+        response => response.data.map(item => item.tag_name)
+      )
+      core.debug(
+        `getLatestTag received tags from releases: found ${allNames.length}`
+      )
+    } else {
+      allNames = await octokit.paginate(
+        octokit.repos.listTags,
+        pages,
+        response => response.data.map(item => item.name)
+      )
+      core.debug(
+        `getLatestTag received tags from tags: found ${allNames.length}`
+      )
+    }
+    return allNames
   }
+  const allTags = await createTagList(fromReleases)
 
-  for (const tag of allNames) {
-    if (!tag.match(search_re)) {
-      continue
+  for (const tag of allTags) {
+    if (tag.match(search_re)) {
+      if (!sortTags) {
+        core.debug(`getLatestTag returns ${tag}`)
+        // Assume that the API returns the most recent tag(s) first.
+        return tag
+      }
+
+      tags.push(parseVersionString(tag))
     }
-
-    if (!sortTags) {
-      core.debug(`getLatestTag returns ${tag}`)
-      // Assume that the API returns the most recent tag(s) first.
-      return tag
-    }
-
-    tags.push(parseVersionString(tag))
   }
 
   if (tags.length === 0) {
@@ -286,6 +293,7 @@ export async function getLatestTag(
     `getLatestTag found ${tags.length} tags starting with prefix ${tagPrefix}`
   )
   core.debug(`getLatestTag found these tags: ${JSON.stringify(tags)}`)
+
   tags.sort(cmpTags)
   const [latestTag] = tags.slice(-1)
   core.debug(`getLatestTag returns ${latestTag}`)
@@ -304,7 +312,7 @@ function tagSortKey(vo: VersionObject): (string | number)[] {
     // Give any string part that starts with a word character a sorting priority
     // by inserting a `false` (< `true`) item into the key array.
     if (typeof a[i] === 'string') {
-      a.splice(i, 0, /^\B/.test(`${a[i]}`) ? 'true' : 'false')
+      a.splice(i, 0, /^\B/.test(a[i].toString()) ? 'true' : 'false')
     }
   }
   // Examples (sorted):
