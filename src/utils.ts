@@ -238,7 +238,6 @@ export async function getLatestTag(
   }
 
   const versionPrefixes = getVersionPrefixes(tagPrefix)
-  const tags: VersionObject[] = []
 
   let search_str
 
@@ -272,6 +271,7 @@ export async function getLatestTag(
     return allNames
   }
   const allTags = await createTagList(fromReleases)
+  const tags: VersionObject[] = []
 
   for (const tag of allTags) {
     if (tag.match(search_re)) {
