@@ -6,8 +6,8 @@ name: Push - Run Yarn Tests
 jobs:
   unit_tests:
     runs-on: Ubuntu-20.04
-    container:
-      image: node:12-alpine
+    # container:
+    #   image: node:12
     steps:
       - uses: actions/checkout@v2
         name: Checkout
