@@ -1,5 +1,5 @@
 import {Context} from '@actions/github/lib/context'
-import {Repo, VersionObject, VersionPrefixes} from './interfaces'
+import {getKeyValue, Repo, VersionObject, VersionPrefixes} from './interfaces'
 import * as core from '@actions/core'
 import {GitHub} from '@actions/github/lib/utils'
 
@@ -349,36 +349,83 @@ export async function getLatestTag(
   return latestTag
 }
 
+function cmp(
+  a: number | string | undefined,
+  b: number | string | undefined
+): number {
+  if (a === undefined && b === undefined) {
+    return 0
+  }
+  if (a === undefined) {
+    return 1
+  }
+  if (b === undefined) {
+    return -1
+  }
+
+  if (a < b) {
+    return -1
+  }
+  if (a > b) {
+    return 1
+  }
+  return 0
+}
 export function cmpTags(a: VersionObject, b: VersionObject): number {
-  return cmpArrays(tagSortKey(a), tagSortKey(b))
-}
+  const order = [
+    'major',
+    'minor',
+    'patch',
+    'legacy_build_number',
+    'label',
+    'build'
+  ]
 
-function tagSortKey(vo: VersionObject): (string | number)[] {
-  const a: (string | number)[] = versionObjToArray(vo)
-  // Example: 'v1.23rc4' -> ['v', '1', '.', '23', 'rc', '4', ''];
+  let i = 0
+  let result = 0
+  /* try getting a different result from 0 (equal)
+   * as long as we have extra properties to compare
+   */
 
-  for (let i = 0; i < a.length; i += 1) {
-    // Give any string part that starts with a word character a sorting priority
-    // by inserting a `false` (< `true`) item into the key array.
-    if (typeof a[i] === 'string') {
-      a.splice(i, 0, /^\B/.test(a[i].toString()) ? 'true' : 'false')
-    }
+  while (result === 0 && i < order.length) {
+    const k = order[i] as keyof VersionObject
+    result = cmp(
+      getKeyValue<keyof VersionObject, VersionObject>(k)(a),
+      getKeyValue<keyof VersionObject, VersionObject>(k)(b)
+    )
+
+    i++
   }
-  // Examples (sorted):
-  //
-  // * 'v1.3'  -> [false, 'v', 1, true, '.', 3, true, '']
-  // * '1.2b1' -> [true, '', 1, true, '.', 2, false, 'b', 1, true, '']
-  // * '1.2'   -> [true, '', 1, true, '.', 2, true, '']
-  // * '1.2-1' -> [true, '', 1, true, '.', 2, true, '-', 1, true, '']
-  // * '1.11'  -> [true, '', 1, true, '.', 11, true, '']
-  return a
+
+  return result
 }
 
-function cmpArrays(a: (string | number)[], b: (string | number)[]): number {
-  for (let i = 0; i < Math.min(a.length, b.length); ++i) {
-    if (a[i] !== b[i]) {
-      return a[i] > b[i] ? 1 : -1
-    }
-  }
-  return a.length - b.length
-}
+// function tagSortKey(vo: VersionObject): (string | number)[] {
+//   const a: (string | number)[] = versionObjToArray(vo)
+//   // Example: 'v1.23rc4' -> ['v', '1', '.', '23', 'rc', '4', ''];
+
+//   for (let i = 0; i < a.length; i += 1) {
+//     // Give any string part that starts with a word character a sorting priority
+//     // by inserting a `false` (< `true`) item into the key array.
+//     if (typeof a[i] === 'string') {
+//       a.splice(i, 0, /^\B/.test(a[i].toString()) ? 'true' : 'false')
+//     }
+//   }
+//   // Examples (sorted):
+//   //
+//   // * 'v1.3'  -> [false, 'v', 1, true, '.', 3, true, '']
+//   // * '1.2b1' -> [true, '', 1, true, '.', 2, false, 'b', 1, true, '']
+//   // * '1.2'   -> [true, '', 1, true, '.', 2, true, '']
+//   // * '1.2-1' -> [true, '', 1, true, '.', 2, true, '-', 1, true, '']
+//   // * '1.11'  -> [true, '', 1, true, '.', 11, true, '']
+//   return a
+// }
+
+// function cmpArrays(a: (string | number)[], b: (string | number)[]): number {
+//   for (let i = 0; i < Math.min(a.length, b.length); ++i) {
+//     if (a[i] !== b[i]) {
+//       return a[i] > b[i] ? 1 : -1
+//     }
+//   }
+//   return a.length - b.length
+// }
