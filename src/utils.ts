@@ -271,21 +271,21 @@ export async function getLatestTag(
     return allNames
   }
   function getMatchedTags(allTagsArray: string[]): VersionObject[] {
-    const tags: VersionObject[] = []
+    const tagsList: VersionObject[] = []
 
     for (const tag of allTagsArray) {
       if (tag.match(search_re)) {
         if (!sortTags) {
           core.debug(`getLatestTag returns ${tag}`)
           // Assume that the API returns the most recent tag(s) first.
-          tags.push(parseVersionString(tag))
-          return tags
+          tagsList.push(parseVersionString(tag))
+          return tagsList
         }
 
-        tags.push(parseVersionString(tag))
+        tagsList.push(parseVersionString(tag))
       }
     }
-    return tags
+    return tagsList
   }
 
   const allTags = await createTagList(fromReleases)
