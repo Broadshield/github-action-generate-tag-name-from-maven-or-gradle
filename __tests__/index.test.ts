@@ -1,6 +1,7 @@
 import {app_version as maven_app_version} from '../src/appVersionMaven'
 import {app_version as gradle_app_version} from '../src/appVersionGradle'
-import {Repo, VersionObject, VersionObjectInitializer} from '../src/interfaces'
+import {Repo, VersionObject} from '../src/interfaces'
+import {VersionObjectBuilder} from "../src/versionObjectBuilder"
 import {Context} from '@actions/github/lib/context'
 
 import {
@@ -15,27 +16,40 @@ import {
 } from '../src/utils'
 
 describe('Get Versions', () => {
-  let versionObj = VersionObjectInitializer()
-  versionObj.major = 2
-  versionObj.minor = 3
-  versionObj.patch = 1
 
-  const version1 = versionObj
 
-  const version2 = versionObj
-  version2.with_v = 'v'
+  let version1 = new VersionObjectBuilder()
+                .major(2)
+                .minor(3)
+                .patch(1)
+                .build()
 
-  const version3 = versionObj
-  version3.label_prefix = '-'
-  version3.label = 'PR1234'
-  version3.build = 1
-  version3.with_v = 'v'
+  let version2 = new VersionObjectBuilder()
+                .major(2)
+                .minor(3)
+                .patch(1)
+                .with_v('v')
+                .build()
 
-  const version4 = versionObj
-  version4.label_prefix = '-'
-  version4.label = 'PR1234'
-  version4.build = 45
-  version4.with_v = 'v'
+  let version3 = new VersionObjectBuilder()
+                .major(2)
+                .minor(3)
+                .patch(1)
+                .with_v('v')
+                .label_prefix('-')
+                .label('PR1234')
+                .buildNum(1)
+                .build()
+
+  let version4 = new VersionObjectBuilder()
+                .major(2)
+                .minor(3)
+                .patch(1)
+                .with_v('v')
+                .label_prefix('-')
+                .label('PR1234')
+                .buildNum(45)
+                .build()
 
   test('version from tests/pom.xml to equal 1.0.0', () => {
     expect(maven_app_version('./__tests__/tests/pom.xml')).toBe('1.0.0')

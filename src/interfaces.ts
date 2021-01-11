@@ -22,20 +22,3 @@ export interface VersionObject {
   label?: string
   build?: number
 }
-
-export function VersionObjectInitializer(): VersionObject {
-  const versionObj: VersionObject = {
-    with_v: undefined,
-    major: 0,
-    minor_prefix: '.',
-    minor: undefined,
-    patch_prefix: '.',
-    patch: undefined,
-    legacy_build_prefix: undefined,
-    legacy_build_number: undefined,
-    label_prefix: undefined,
-    label: undefined,
-    build: undefined
-  }
-  return versionObj
-}
