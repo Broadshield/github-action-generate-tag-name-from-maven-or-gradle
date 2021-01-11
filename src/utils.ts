@@ -34,9 +34,11 @@ export function normalize_version(
   } else {
     result = default_version
   }
-
+  const used = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `normalize_version passed ${v_string} with default ${default_version} and returns ${result}`
+    `(${
+      Math.round(used * 100) / 100
+    } MB) normalize_version passed ${v_string} with default ${default_version} and returns ${result}`
   )
   return result
 }
@@ -104,15 +106,31 @@ export function versionObjToArray(vObj: VersionObject): (string | number)[] {
   )
   return vArray
 }
+export function versionObjToString(vObj: VersionObject): string {
+  const vStr = `${vObj.with_v || ''}${vObj.major}${vObj.minor_prefix || ''}${
+    vObj.minor || ''
+  }${vObj.patch_prefix || ''}${vObj.patch || ''}${
+    vObj.legacy_build_prefix || ''
+  }${vObj.legacy_build_number || ''}${vObj.label_prefix || ''}${
+    vObj.label || ''
+  }${vObj.build ? '.' : ''}${vObj.build || ''}`
 
-export function bumper(fullTag: string, bumping: string): string {
-  const versionObj = parseVersionString(fullTag)
+  core.debug(
+    `versionObjToString passed ${JSON.stringify(vObj)} returns ${vStr}`
+  )
+  return vStr
+}
 
+export function bumper(versionObj: VersionObject, bumping: string): string {
   const currentVersion = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
   const label = versionObj.label || 'alpha'
   const v = versionObj.with_v || ''
 
-  core.debug(`bumper passed fullTag ${fullTag} and bumping ${bumping}}`)
+  core.debug(
+    `bumper passed version object ${versionObjToString(
+      versionObj
+    )} and bumping ${bumping}}`
+  )
   core.debug(
     `bumper-- currentVersion: ${currentVersion}, label: ${label}, v: ${v}`
   )
@@ -192,8 +210,11 @@ export function getVersionStringPrefix(
   if (versionObj.with_v) {
     result = `${versionObj.with_v}${result}`
   }
+  const used = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `getVersionStringPrefix passed versionObj ${JSON.stringify(
+    `(${
+      Math.round(used * 100) / 100
+    } MB) getVersionStringPrefix passed versionObj ${JSON.stringify(
       versionObj
     )} and bumping ${bumping} and returns ${result}`
   )
@@ -203,7 +224,10 @@ export function getVersionStringPrefix(
 export function getVersionPrefixes(str: string): VersionPrefixes {
   const search_re = /^(v)?(?<version>.*)/
   const matcher = str?.match(search_re)
-  core.debug(`parseVersionString passed ${str}`)
+  const used = process.memoryUsage().heapUsed / 1024 / 1024
+  core.debug(
+    `(${Math.round(used * 100) / 100} MB) parseVersionString passed ${str}`
+  )
   if (
     matcher === null ||
     matcher.groups === undefined ||
@@ -227,9 +251,12 @@ export async function getLatestTag(
   sortTags: boolean,
   ignore_v_when_searching: boolean,
   octokit: InstanceType<typeof GitHub>
-): Promise<string> {
+): Promise<VersionObject> {
+  const usedUp = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `getLatestTag passed owner: ${owner}, repo: ${repo}, tagPrefix: ${tagPrefix}, fromReleases: ${fromReleases}, sortTags: ${sortTags}`
+    `(${
+      Math.round(usedUp * 100) / 100
+    } MB) getLatestTag passed owner: ${owner}, repo: ${repo}, tagPrefix: ${tagPrefix}, fromReleases: ${fromReleases}, sortTags: ${sortTags}`
   )
   const pages = {
     owner,
@@ -255,8 +282,13 @@ export async function getLatestTag(
         pages,
         response => response.data.map(item => item.tag_name)
       )
+      const used = process.memoryUsage().heapUsed / 1024 / 1024
       core.debug(
-        `getLatestTag received tags from releases: found ${allNames.length}`
+        `(${
+          Math.round(used * 100) / 100
+        } MB) getLatestTag received tags from releases: found ${
+          allNames.length
+        }`
       )
     } else {
       allNames = await octokit.paginate(
@@ -264,8 +296,11 @@ export async function getLatestTag(
         pages,
         response => response.data.map(item => item.name)
       )
+      const used = process.memoryUsage().heapUsed / 1024 / 1024
       core.debug(
-        `getLatestTag received tags from tags: found ${allNames.length}`
+        `(${
+          Math.round(used * 100) / 100
+        } MB) getLatestTag received tags from tags: found ${allNames.length}`
       )
     }
     return allNames
@@ -281,7 +316,12 @@ export async function getLatestTag(
           tagsList.push(parseVersionString(tag))
           return tagsList
         }
-
+        const used = process.memoryUsage().heapUsed / 1024 / 1024
+        core.debug(
+          `(${
+            Math.round(used * 100) / 100
+          } MB) getMatchedTags adding tag ${tag}`
+        )
         tagsList.push(parseVersionString(tag))
       }
     }
@@ -293,17 +333,20 @@ export async function getLatestTag(
 
   if (tags.length === 0) {
     core.debug(`getLatestTag found 0 tags starting with prefix ${tagPrefix}`)
-    return tagPrefix
+    return parseVersionString(tagPrefix)
   }
+  const usedFin = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `getLatestTag found ${tags.length} tags starting with prefix ${tagPrefix}`
+    `(${Math.round(usedFin * 100) / 100} MB) getLatestTag found ${
+      tags.length
+    } tags starting with prefix ${tagPrefix}`
   )
   core.debug(`getLatestTag found these tags: ${JSON.stringify(tags)}`)
 
   tags.sort(cmpTags)
   const [latestTag] = tags.slice(-1)
   core.debug(`getLatestTag returns ${latestTag}`)
-  return versionObjToArray(latestTag).join('')
+  return latestTag
 }
 
 export function cmpTags(a: VersionObject, b: VersionObject): number {

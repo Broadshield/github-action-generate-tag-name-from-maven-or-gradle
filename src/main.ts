@@ -13,7 +13,8 @@ import {
   parseVersionString,
   getLatestTag,
   bumper,
-  getVersionPrefixes
+  getVersionPrefixes,
+  versionObjToString
 } from './utils'
 import {Repo} from './interfaces'
 
@@ -131,7 +132,7 @@ async function run(): Promise<void> {
     core.setOutput('prefix', prefix)
     core.setOutput('suffix', suffix)
     core.setOutput('bump_item', bump_item)
-    core.setOutput('latest_git_tag', latestGitTag)
+    core.setOutput('latest_git_tag', versionObjToString(latestGitTag))
     core.info(`Tag Name: ${tag_name}`)
     core.info(`App Version: ${appVersion}`)
     core.info(`Search Prefix: ${searchPrefix}`)
