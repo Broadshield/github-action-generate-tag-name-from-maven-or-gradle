@@ -28,6 +28,7 @@
   "devDependencies": {
     "@tsconfig/node12": "^1.0.7",
     "@types/jest": "^26.0.20",
+    "@types/js-yaml": "^4.0.0",
     "@types/node": "^14.14.20",
     "@typescript-eslint/parser": "^4.12.0",
     "@vercel/ncc": "^0.26.2",
@@ -64,7 +65,7 @@
     "preversion": "echo 'Running test';yarn test",
     "version": "echo 'Run versioning commands';yarn generate-docs;echo \"::set-output name=tag::v${npm_package_version}\"",
     "postversion": "echo 'Running post versioning commands';git push --tags && git push && echo \"Successfully released version $npm_package_version!\"",
-    "generate-docs": "echo 'Generating docs';if [ ! -f 'lib/misc/generate-docs.js' ];then yarn run build;fi; node -e \"require('./lib/misc/generate-docs.js').updateUsage(actionReference='Broadshield/github-action-generate-tag-name-from-maven-or-gradle@v' + require('./package.json').version.toString())\" && sed -i \"s|Broadshield/github-action-generate-tag-name-from-maven-or-gradle@\\(.*\\)\\$|Broadshield/github-action-generate-tag-name-from-maven-or-gradle@v$(node -p -e \"require('./package.json').version\")|g\" README.md;git add README.md"
+    "generate-docs": "echo 'Generating docs';if [ ! -f 'lib/misc/generate-docs.js' ];then tsc;fi; node -e \"require('./lib/misc/generate-docs.js').updateUsage(actionReference='Broadshield/github-action-generate-tag-name-from-maven-or-gradle@v' + require('./package.json').version.toString())\" && sed -i \"s|Broadshield/github-action-generate-tag-name-from-maven-or-gradle@\\(.*\\)\\$|Broadshield/github-action-generate-tag-name-from-maven-or-gradle@v$(node -p -e \"require('./package.json').version\")|g\" README.md;git add README.md"
   },
   "jest": {
     "testPathIgnorePatterns": [
