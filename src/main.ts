@@ -95,21 +95,20 @@ async function run(): Promise<void> {
       default_version
     )
     const prefix = tag_prefix || appVersion
-    let suffix: string | null | undefined = 'alpha'
-    let searchPrefix
-    if (bump_item === 'build') {
-      if (pr) {
-        suffix = `PR${pr}`
-      } else if (br) {
-        suffix = basename(br)?.replace(/\./g, '-')
-      }
-      searchPrefix = `${prefix}-${suffix}`
-    } else {
-      searchPrefix = getVersionStringPrefix(
-        parseVersionString(prefix),
-        bump_item
-      )
+    let suffix: string | null | undefined = undefined
+
+    if (pr) {
+      suffix = `PR${pr}`
+    } else if (br) {
+      suffix = basename(br)?.replace(/\./g, '-')
     }
+
+    const searchPrefix = getVersionStringPrefix(
+      parseVersionString(prefix),
+      bump_item,
+      suffix,
+      is_release_branch
+    )
 
     const latestGitTag = await getLatestTag(
       repos.owner,
@@ -135,6 +134,7 @@ async function run(): Promise<void> {
     core.setOutput('suffix', suffix)
     core.setOutput('bump_item', bump_item)
     core.setOutput('latest_git_tag', versionObjToString(latestGitTag))
+    core.setOutput('is_release_branch', is_release_branch)
     core.info(`Tag Name: ${tag_name}`)
     core.info(`App Version: ${appVersion}`)
     core.info(`Search Prefix: ${searchPrefix}`)

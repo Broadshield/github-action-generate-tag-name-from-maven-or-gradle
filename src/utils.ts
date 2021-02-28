@@ -196,7 +196,9 @@ export function parseVersionString(str: string): VersionObject {
 
 export function getVersionStringPrefix(
   versionObj: VersionObject,
-  bumping: string
+  bumping: string,
+  suffix: string | undefined,
+  is_release_branch: boolean
 ): string {
   let result
   if (['major', 'minor', 'patch'].includes(bumping)) {
@@ -209,8 +211,8 @@ export function getVersionStringPrefix(
     }
   } else {
     result = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
-    if (versionObj.label) {
-      result = `${result}${LABEL_PREFIX}${versionObj.label}`
+    if (!is_release_branch && (versionObj.label || suffix)) {
+      result = `${result}${LABEL_PREFIX}${versionObj.label || suffix}`
     }
   }
   if (versionObj.with_v) {
