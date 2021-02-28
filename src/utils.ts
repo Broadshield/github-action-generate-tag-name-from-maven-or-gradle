@@ -3,9 +3,9 @@ import {getKeyValue, Repo, VersionObject, VersionPrefixes} from './interfaces'
 import * as core from '@actions/core'
 import {GitHub} from '@actions/github/lib/utils'
 
-const LABEL_PREFIX = '-'
-const BUILD_PREFIX = '.'
-export const version_regex = /^(?<v>v)?(?<version>(?<major>[\d]+)(?<minor_prefix>\.)?(?<minor>[\d]+)?(?<patch_prefix>\.)?(?<patch>[\d]+)?)((?<legacy_build_prefix>_)(?<legacy_build_number>[\d]+))?((?<label_prefix>[-_])(?<label>[-_/0-9a-zA-Z]+))?(\.(?<build>[\d]+))?$/
+const LABEL_PREFIX = core.getInput('label_delimiter', {required: false}) || '-'
+const BUILD_PREFIX = core.getInput('build_delimiter', {required: false}) || '+'
+export const version_regex = /^(?<v>v)?(?<version>(?<major>[\d]+)(?<minor_prefix>\.)?(?<minor>[\d]+)?(?<patch_prefix>\.)?(?<patch>[\d]+)?)((?<legacy_build_prefix>_)(?<legacy_build_number>[\d]+))?((?<label_prefix>[-_+])(?<label>[-_/0-9a-zA-Z]+))?([.+](?<build>[\d]+))?$/
 
 export function basename(path: string): string | null {
   if (!path) return null

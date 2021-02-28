@@ -50,6 +50,14 @@ inputs:
     required: false
     description: Searches for tags that have a 'v' at the start and without
     default: 'true'
+  build_delimiter:
+    required: false
+    description: The delimiter character to use to separate the version from the build number
+    default: '+'
+  label_delimiter:
+    required: false
+    description: The delimiter character to use to separate the version from the label
+    default: '-'
 
 outputs:
   tag_name:
