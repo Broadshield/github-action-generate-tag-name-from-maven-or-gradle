@@ -69,7 +69,8 @@ async function run(): Promise<void> {
       (`${sort_tags}` || sortTagsDefault).toLowerCase() === 'true'
     const baseBranch = branch || ref
     const br = stripRefs(baseBranch)
-    const bump_item = br !== release_branch ? 'build' : bump
+    const is_release_branch = br?.startsWith(release_branch) || false
+    const bump_item = !is_release_branch ? 'build' : bump
     const repository =
       core.getInput('repository', {required: false}) ||
       process.env.GITHUB_REPOSITORY ||
@@ -119,7 +120,8 @@ async function run(): Promise<void> {
       ignore_v_when_searching,
       octokit
     )
-    const tag_name = bumper(latestGitTag, bump_item)
+
+    const tag_name = bumper(latestGitTag, bump_item, is_release_branch)
     const tagOptions = getVersionPrefixes(tag_name)
     core.setOutput('tag_name_with_v', tagOptions.with_v)
     core.setOutput('tag_name_without_v', tagOptions.without_v)

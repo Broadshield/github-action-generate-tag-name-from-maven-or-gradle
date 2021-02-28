@@ -121,7 +121,11 @@ export function versionObjToString(vObj: VersionObject): string {
   return vStr
 }
 
-export function bumper(versionObj: VersionObject, bumping: string): string {
+export function bumper(
+  versionObj: VersionObject,
+  bumping: string,
+  is_release_branch: boolean
+): string {
   const currentVersion = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
   const label = versionObj.label || 'alpha'
   const v = versionObj.with_v || ''
@@ -137,7 +141,9 @@ export function bumper(versionObj: VersionObject, bumping: string): string {
   let result
   if (bumping === 'build') {
     const buildnumber = (versionObj.build || 0) + 1
-    result = `${v}${currentVersion}${LABEL_PREFIX}${label}${BUILD_PREFIX}${buildnumber}`
+    result = `${v}${currentVersion}${is_release_branch ? '' : LABEL_PREFIX}${
+      is_release_branch ? '' : label
+    }${BUILD_PREFIX}${buildnumber}`
   } else if (['major', 'minor', 'patch'].includes(bumping)) {
     if (bumping === 'major') {
       versionObj.major = (versionObj.major || 0) + 1
