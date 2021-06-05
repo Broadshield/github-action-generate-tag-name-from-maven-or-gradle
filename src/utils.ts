@@ -1,11 +1,14 @@
-import {Context} from '@actions/github/lib/context'
-import {getKeyValue, Repo, VersionObject, VersionPrefixes} from './interfaces'
+/* eslint-disable security/detect-unsafe-regex */
 import * as core from '@actions/core'
-import {GitHub} from '@actions/github/lib/utils'
+import { Context } from '@actions/github/lib/context'
+import { GitHub } from '@actions/github/lib/utils'
 
-const LABEL_PREFIX = core.getInput('label_delimiter', {required: false}) || '-'
-const BUILD_PREFIX = core.getInput('build_delimiter', {required: false}) || '+'
-export const version_regex = /^(?<v>v)?(?<version>(?<major>[\d]+)(?<minor_prefix>\.)?(?<minor>[\d]+)?(?<patch_prefix>\.)?(?<patch>[\d]+)?)((?<legacy_build_prefix>_)(?<legacy_build_number>[\d]+))?((?<label_prefix>[-_])(?<label>[-_/0-9a-zA-Z]+))?([.+](?<build>[\d]+))?$/
+import { getKeyValue, Repo, VersionObject, VersionPrefixes } from './interfaces'
+
+const LABEL_PREFIX = core.getInput('label_delimiter', { required: false }) || '-'
+const BUILD_PREFIX = core.getInput('build_delimiter', { required: false }) || '+'
+export const version_regex =
+  /^(?<v>v)?(?<version>(?<major>[\d]+)(?<minor_prefix>\.)?(?<minor>[\d]+)?(?<patch_prefix>\.)?(?<patch>[\d]+)?)((?<legacy_build_prefix>_)(?<legacy_build_number>[\d]+))?((?<label_prefix>[-_])(?<label>[-_/0-9a-zA-Z]+))?([.+](?<build>[\d]+))?$/
 
 export function basename(path: string): string | null {
   if (!path) return null
@@ -21,10 +24,7 @@ export function stripRefs(path: string): string | null {
   return result
 }
 
-export function normalize_version(
-  v_string: string | undefined,
-  default_version = '0.0.1'
-): string {
+export function normalize_version(v_string: string | undefined, default_version = '0.0.1'): string {
   let result
   const VERSION_RE = /^([v])?(?<version>[0-9]+\.[0-9]+\.[0-9])/
   if (v_string === undefined) return default_version
@@ -36,51 +36,39 @@ export function normalize_version(
   }
   const used = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${
-      Math.round(used * 100) / 100
+    `(${Math.round(used * 100) / 100
     } MB) normalize_version passed ${v_string} with default ${default_version} and returns ${result}`
   )
   return result
 }
 
-export function repoSplit(
-  inputRepo: string | undefined | null,
-  context: Context
-): Repo | null {
+export function repoSplit(inputRepo: string | undefined | null, context: Context): Repo | null {
+  const result: Repo = {} as Repo
+  let owner, repo
   if (inputRepo) {
-    const [owner, repo] = inputRepo.split('/')
-    const result = {owner, repo}
-    core.debug(
-      `repoSplit passed ${inputRepo} and returns ${JSON.stringify(result)}`
-    )
-    return result
-  }
-  if (process.env.GITHUB_REPOSITORY) {
-    const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
-    const result = {owner, repo}
-    core.debug(
-      `repoSplit using GITHUB_REPOSITORY ${
-        process.env.GITHUB_REPOSITORY
-      } and returns ${JSON.stringify(result)}`
-    )
-    return result
-  }
+    [owner, repo] = inputRepo.split('/')
 
-  if (context.payload.repository) {
-    const result = {
-      owner: context.payload.repository.owner.login,
-      repo: context.payload.repository.name
-    }
+    core.debug(`repoSplit passed ${inputRepo} and returns ${JSON.stringify(result)}`)
+  } else if (process.env.GITHUB_REPOSITORY) {
+    [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
+
     core.debug(
-      `repoSplit using GITHUB_REPOSITORY ${
-        process.env.GITHUB_REPOSITORY
-      } and returns ${JSON.stringify(result)}`
+      `repoSplit using GITHUB_REPOSITORY ${process.env.GITHUB_REPOSITORY} and returns ${JSON.stringify(result)}`
     )
+  } else if (context.repo) {
+    owner = context.repo.owner
+    repo = context.repo.repo
+
+    core.debug(
+      `repoSplit using GITHUB_REPOSITORY ${process.env.GITHUB_REPOSITORY} and returns ${JSON.stringify(result)}`
+    )
+  }
+  if (repo && owner) {
+    result.owner = owner
+    result.repo = repo
     return result
   }
-  throw Error(
-    "repoSplit requires a GITHUB_REPOSITORY environment variable like 'owner/repo'"
-  )
+  throw Error("repoSplit requires a GITHUB_REPOSITORY environment variable like 'owner/repo'")
 }
 
 // Functions
@@ -99,51 +87,30 @@ export function versionObjToArray(vObj: VersionObject): (string | number)[] {
   vArray.push(vObj.build ? '.' : '')
   vArray.push(vObj.build || '')
 
-  core.debug(
-    `versionObjToArray passed ${JSON.stringify(vObj)} returns ${vArray.join(
-      ''
-    )}`
-  )
+  core.debug(`versionObjToArray passed ${JSON.stringify(vObj)} returns ${vArray.join('')}`)
   return vArray
 }
 export function versionObjToString(vObj: VersionObject): string {
-  const vStr = `${vObj.with_v || ''}${vObj.major}${vObj.minor_prefix || ''}${
-    vObj.minor || ''
-  }${vObj.patch_prefix || ''}${vObj.patch || ''}${
-    vObj.legacy_build_prefix || ''
-  }${vObj.legacy_build_number || ''}${vObj.label_prefix || ''}${
-    vObj.label || ''
-  }${vObj.build ? '.' : ''}${vObj.build || ''}`
+  const vStr = `${vObj.with_v || ''}${vObj.major}${vObj.minor_prefix || ''}${vObj.minor || ''}${vObj.patch_prefix || ''
+    }${vObj.patch || ''}${vObj.legacy_build_prefix || ''}${vObj.legacy_build_number || ''}${vObj.label_prefix || ''}${vObj.label || ''
+    }${vObj.build ? '.' : ''}${vObj.build || ''}`
 
-  core.debug(
-    `versionObjToString passed ${JSON.stringify(vObj)} returns ${vStr}`
-  )
+  core.debug(`versionObjToString passed ${JSON.stringify(vObj)} returns ${vStr}`)
   return vStr
 }
 
-export function bumper(
-  versionObj: VersionObject,
-  bumping: string,
-  is_release_branch: boolean
-): string {
+export function bumper(versionObj: VersionObject, bumping: string, is_release_branch: boolean): string {
   const currentVersion = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
   const label = versionObj.label || 'alpha'
   const v = versionObj.with_v || ''
 
-  core.debug(
-    `bumper passed version object ${versionObjToString(
-      versionObj
-    )} and bumping ${bumping}}`
-  )
-  core.debug(
-    `bumper-- currentVersion: ${currentVersion}, label: ${label}, v: ${v}`
-  )
+  core.debug(`bumper passed version object ${versionObjToString(versionObj)} and bumping ${bumping}}`)
+  core.debug(`bumper-- currentVersion: ${currentVersion}, label: ${label}, v: ${v}`)
   let result
   if (bumping === 'build') {
     const buildnumber = (versionObj.build || 0) + 1
-    result = `${v}${currentVersion}${is_release_branch ? '' : LABEL_PREFIX}${
-      is_release_branch ? '' : label
-    }${BUILD_PREFIX}${buildnumber}`
+    result = `${v}${currentVersion}${is_release_branch ? '' : LABEL_PREFIX}${is_release_branch ? '' : label
+      }${BUILD_PREFIX}${buildnumber}`
   } else if (['major', 'minor', 'patch'].includes(bumping)) {
     if (bumping === 'major') {
       versionObj.major = (versionObj.major || 0) + 1
@@ -157,16 +124,14 @@ export function bumper(
     }
     result = `${v}${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
   } else {
-    throw Error(
-      `Bump value must be one of: build, major, minor, or patch. Instead '${bumping}' was given`
-    )
+    throw Error(`Bump value must be one of: build, major, minor, or patch. Instead '${bumping}' was given`)
   }
   core.debug(`bumper returns: ${result}`)
   return result
 }
 
 export function parseVersionString(str: string): VersionObject {
-  const vObj: VersionObject = {major: 0, minor: 0, patch: 0}
+  const vObj: VersionObject = { major: 0, minor: 0, patch: 0 }
 
   const search_re = version_regex
   const matcher = str?.match(search_re)
@@ -220,9 +185,7 @@ export function getVersionStringPrefix(
   }
   const used = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${
-      Math.round(used * 100) / 100
-    } MB) getVersionStringPrefix passed versionObj ${JSON.stringify(
+    `(${Math.round(used * 100) / 100} MB) getVersionStringPrefix passed versionObj ${JSON.stringify(
       versionObj
     )} and bumping ${bumping} and returns ${result}`
   )
@@ -233,20 +196,14 @@ export function getVersionPrefixes(str: string): VersionPrefixes {
   const search_re = /^(v)?(?<version>.*)/
   const matcher = str?.match(search_re)
   const used = process.memoryUsage().heapUsed / 1024 / 1024
-  core.debug(
-    `(${Math.round(used * 100) / 100} MB) parseVersionString passed ${str}`
-  )
-  if (
-    matcher === null ||
-    matcher.groups === undefined ||
-    matcher.groups.version === undefined
-  ) {
+  core.debug(`(${Math.round(used * 100) / 100} MB) parseVersionString passed ${str}`)
+  if (matcher === null || matcher.groups === undefined || matcher.groups.version === undefined) {
     throw new Error("getVersionPrefixes: Version can't be found in string")
   }
 
   const groups = matcher.groups
   const version = groups.version
-  return {without_v: version, with_v: `v${version}`}
+  return { without_v: version, with_v: `v${version}` }
 }
 function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
@@ -262,8 +219,7 @@ export async function getLatestTag(
 ): Promise<VersionObject> {
   const usedUp = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${
-      Math.round(usedUp * 100) / 100
+    `(${Math.round(usedUp * 100) / 100
     } MB) getLatestTag passed owner: ${owner}, repo: ${repo}, tagPrefix: ${tagPrefix}, fromReleases: ${fromReleases}, sortTags: ${sortTags}`
   )
   const pages = {
@@ -284,32 +240,21 @@ export async function getLatestTag(
   const search_re = RegExp(search_str)
   async function createTagList(_fromReleases: boolean): Promise<string[]> {
     let allNames: string[]
+    let used = 0
     if (_fromReleases) {
-      allNames = await octokit.paginate(
-        octokit.repos.listReleases,
-        pages,
-        response => response.data.map(item => item.tag_name)
+      allNames = await octokit.paginate(octokit.rest.repos.listReleases, pages, response =>
+        response.data.map(item => item.tag_name)
       )
-      const used = process.memoryUsage().heapUsed / 1024 / 1024
+      used = process.memoryUsage().heapUsed / 1024 / 1024
       core.debug(
-        `(${
-          Math.round(used * 100) / 100
-        } MB) getLatestTag received tags from releases: found ${
-          allNames.length
-        }`
+        `(${Math.round(used * 100) / 100} MB) getLatestTag received tags from releases: found ${allNames.length}`
       )
     } else {
-      allNames = await octokit.paginate(
-        octokit.repos.listTags,
-        pages,
-        response => response.data.map(item => item.name)
+      allNames = await octokit.paginate(octokit.rest.repos.listTags, pages, response =>
+        response.data.map(item => item.name)
       )
-      const used = process.memoryUsage().heapUsed / 1024 / 1024
-      core.debug(
-        `(${
-          Math.round(used * 100) / 100
-        } MB) getLatestTag received tags from tags: found ${allNames.length}`
-      )
+      used = process.memoryUsage().heapUsed / 1024 / 1024
+      core.debug(`(${Math.round(used * 100) / 100} MB) getLatestTag received tags from tags: found ${allNames.length}`)
     }
     return allNames
   }
@@ -325,11 +270,7 @@ export async function getLatestTag(
           return tagsList
         }
         const used = process.memoryUsage().heapUsed / 1024 / 1024
-        core.debug(
-          `(${
-            Math.round(used * 100) / 100
-          } MB) getMatchedTags adding tag ${tag}`
-        )
+        core.debug(`(${Math.round(used * 100) / 100} MB) getMatchedTags adding tag ${tag}`)
         tagsList.push(parseVersionString(tag))
       }
     }
@@ -345,9 +286,7 @@ export async function getLatestTag(
   }
   const usedFin = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${Math.round(usedFin * 100) / 100} MB) getLatestTag found ${
-      tags.length
-    } tags starting with prefix ${tagPrefix}`
+    `(${Math.round(usedFin * 100) / 100} MB) getLatestTag found ${tags.length} tags starting with prefix ${tagPrefix}`
   )
   core.debug(`getLatestTag found these tags: ${JSON.stringify(tags)}`)
 
@@ -357,10 +296,7 @@ export async function getLatestTag(
   return latestTag
 }
 
-function cmp(
-  a: number | string | undefined,
-  b: number | string | undefined
-): number {
+function cmp(a: number | string | undefined, b: number | string | undefined): number {
   if (a === undefined && b === undefined) {
     return 0
   }
@@ -380,14 +316,7 @@ function cmp(
   return 0
 }
 export function cmpTags(a: VersionObject, b: VersionObject): number {
-  const order = [
-    'major',
-    'minor',
-    'patch',
-    'legacy_build_number',
-    'label',
-    'build'
-  ]
+  const order = ['major', 'minor', 'patch', 'legacy_build_number', 'label', 'build']
 
   let i = 0
   let result = 0

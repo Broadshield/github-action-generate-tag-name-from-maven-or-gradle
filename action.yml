@@ -1,5 +1,5 @@
 name: 🏷️ Generate Tag Name from Maven or Gradle
-description: Use the version found in the pom.xml or gradle.build as the reference tag for bumping
+description: Generates a Git tag name for Pull Releases and Branches based on the application version in pom.xml or gradle.settings files
 branding:
   color: blue
   icon: git-pull-request

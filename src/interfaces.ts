@@ -7,10 +7,12 @@ export interface VersionPrefixes {
   without_v: string
   with_v: string
 }
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const getKeyValue = <U extends keyof T, T extends object>(key: U) => (
-  obj: T
-) => obj[key]
+// eslint-disable-next-line @typescript-eslint/ban-types,security/detect-object-injection
+export const getKeyValue =
+  <U extends keyof T, T extends object>(key: U) =>
+  (obj: T) =>
+    // eslint-disable-next-line security/detect-object-injection
+    obj[key]
 // v1.1
 // v1.7.6
 export interface VersionObject {

@@ -1,7 +1,7 @@
+/* eslint-disable security/detect-object-injection */
 import * as fs from 'fs'
-import * as os from 'os'
-
 import * as yaml from 'js-yaml'
+import * as os from 'os'
 
 //
 // SUMMARY
