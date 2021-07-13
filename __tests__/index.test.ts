@@ -2,11 +2,11 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 
-import {app_version as gradle_app_version} from '../src/appVersionGradle'
-import {app_version as maven_app_version} from '../src/appVersionMaven'
-import {Repo} from '../src/interfaces'
-import {basename, normalize_version, parseVersionString, repoSplit, stripRefs} from '../src/utils'
-import {VersionObjectBuilder} from '../src/versionObjectBuilder'
+import { app_version as gradle_app_version } from '../src/appVersionGradle'
+import { app_version as maven_app_version } from '../src/appVersionMaven'
+import { Repo } from '../src/interfaces'
+import { basename, normalize_version, parseVersionString, repoSplit, stripRefs, versionObjToString } from '../src/utils'
+import { VersionObjectBuilder } from '../src/versionObjectBuilder'
 
 let inputs = {} as any
 
@@ -62,12 +62,16 @@ describe('Get Versions', () => {
   test(`parseVersionString given string v2.3.1 should match ${JSON.stringify(version2)}`, () => {
     expect(parseVersionString('v2.3.1')).toStrictEqual(version2)
   })
-  test(`parseVersionString given string v2.3.1-PR1234.1 should match ${JSON.stringify(version3)}`, () => {
-    expect(parseVersionString('v2.3.1-PR1234.1')).toStrictEqual(version3)
+  test(`parseVersionString given string v2.3.1-PR1234+1 should match ${JSON.stringify(version3)}`, () => {
+    expect(parseVersionString('v2.3.1-PR1234+1')).toStrictEqual(version3)
   })
 
-  test(`parseVersionString given string v2.3.1-PR1234.45 should match ${JSON.stringify(version4)}`, () => {
-    expect(parseVersionString('v2.3.1-PR1234.45')).toStrictEqual(version4)
+  test(`parseVersionString given string v2.3.1-PR1234+45 should match ${JSON.stringify(version4)}`, () => {
+    expect(parseVersionString('v2.3.1-PR1234+45')).toStrictEqual(version4)
+  })
+
+  test(`versionObjToString given string ${JSON.stringify(version4)} should match v2.3.1-PR1234+45}`, () => {
+    expect(versionObjToString(version4)).toStrictEqual('v2.3.1-PR1234+45')
   })
 })
 
@@ -120,7 +124,7 @@ describe('repoSplit utility', () => {
 
   beforeEach(() => {
     jest.resetModules() // most important - it clears the cache
-    process.env = {...OLD_ENV} // make a copy
+    process.env = { ...OLD_ENV } // make a copy
   })
 
   afterAll(() => {
