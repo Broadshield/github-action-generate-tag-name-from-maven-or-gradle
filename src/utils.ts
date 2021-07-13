@@ -1,12 +1,12 @@
 /* eslint-disable security/detect-unsafe-regex */
 import * as core from '@actions/core'
-import {Context} from '@actions/github/lib/context'
-import {GitHub} from '@actions/github/lib/utils'
+import { Context } from '@actions/github/lib/context'
+import { GitHub } from '@actions/github/lib/utils'
 
-import {getKeyValue, Repo, VersionObject, VersionPrefixes} from './interfaces'
+import { getKeyValue, Repo, VersionObject, VersionPrefixes } from './interfaces'
 
-const LABEL_PREFIX = core.getInput('label_delimiter', {required: false}) || '-'
-const BUILD_PREFIX = core.getInput('build_delimiter', {required: false}) || '+'
+const LABEL_PREFIX = core.getInput('label_delimiter', { required: false }) || '-'
+const BUILD_PREFIX = core.getInput('build_delimiter', { required: false }) || '+'
 export const version_regex =
   /^(?<v>v)?(?<version>(?<major>[\d]+)(?<minor_prefix>\.)?(?<minor>[\d]+)?(?<patch_prefix>\.)?(?<patch>[\d]+)?)((?<legacy_build_prefix>_)(?<legacy_build_number>[\d]+))?((?<label_prefix>[-_])(?<label>[-_/0-9a-zA-Z]+))?([.+](?<build>[\d]+))?$/
 
@@ -36,8 +36,7 @@ export function normalize_version(v_string: string | undefined, default_version 
   }
   const used = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${
-      Math.round(used * 100) / 100
+    `(${Math.round(used * 100) / 100
     } MB) normalize_version passed ${v_string} with default ${default_version} and returns ${result}`
   )
   return result
@@ -85,7 +84,7 @@ export function versionObjToArray(vObj: VersionObject): (string | number)[] {
   vArray.push(undfEmpty(vObj.legacy_build_number))
   vArray.push(undfEmpty(vObj.label_prefix))
   vArray.push(undfEmpty(vObj.label))
-  vArray.push(vObj.build === undefined ? '.' : '')
+  vArray.push(vObj.build === undefined ? BUILD_PREFIX : '')
   vArray.push(undfEmpty(vObj.build))
 
   core.debug(`versionObjToArray passed ${JSON.stringify(vObj)} returns ${vArray.join('')}`)
@@ -102,7 +101,7 @@ export function versionObjToString(vObj: VersionObject): string {
     vObj.minor
   )}${undfEmpty(vObj.patch_prefix)}${undfEmpty(vObj.patch)}${undfEmpty(vObj.legacy_build_prefix)}${undfEmpty(
     vObj.legacy_build_number
-  )}${undfEmpty(vObj.label_prefix)}${undfEmpty(vObj.label)}${vObj.build ? '+' : ''}${undfEmpty(vObj.build)}`
+  )}${undfEmpty(vObj.label_prefix)}${undfEmpty(vObj.label)}${vObj.build ? BUILD_PREFIX : ''}${undfEmpty(vObj.build)}`
 
   core.debug(`versionObjToString passed ${JSON.stringify(vObj)} returns ${vStr} `)
   return vStr
@@ -118,9 +117,8 @@ export function bumper(versionObj: VersionObject, bumping: string, is_release_br
   let result
   if (bumping === 'build') {
     const buildnumber = (versionObj.build || 0) + 1
-    result = `${v} ${currentVersion} ${is_release_branch ? '' : LABEL_PREFIX} ${
-      is_release_branch ? '' : label
-    } ${BUILD_PREFIX} ${buildnumber} `
+    result = `${v} ${currentVersion} ${is_release_branch ? '' : LABEL_PREFIX} ${is_release_branch ? '' : label
+      } ${BUILD_PREFIX} ${buildnumber} `
   } else if (['major', 'minor', 'patch'].includes(bumping)) {
     if (bumping === 'major') {
       versionObj.major = (versionObj.major || 0) + 1
@@ -141,7 +139,7 @@ export function bumper(versionObj: VersionObject, bumping: string, is_release_br
 }
 
 export function parseVersionString(str: string): VersionObject {
-  const vObj: VersionObject = {major: 0, minor: 0, patch: 0}
+  const vObj: VersionObject = { major: 0, minor: 0, patch: 0 }
 
   const search_re = version_regex
   const matcher = str?.match(search_re)
@@ -213,7 +211,7 @@ export function getVersionPrefixes(str: string): VersionPrefixes {
 
   const groups = matcher.groups
   const version = groups.version
-  return {without_v: version, with_v: `v${version} `}
+  return { without_v: version, with_v: `v${version} ` }
 }
 function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
@@ -229,8 +227,7 @@ export async function getLatestTag(
 ): Promise<VersionObject> {
   const usedUp = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${
-      Math.round(usedUp * 100) / 100
+    `(${Math.round(usedUp * 100) / 100
     } MB) getLatestTag passed owner: ${owner}, repo: ${repo}, tagPrefix: ${tagPrefix}, fromReleases: ${fromReleases}, sortTags: ${sortTags} `
   )
   const pages = {
@@ -275,7 +272,7 @@ export async function getLatestTag(
     for (const tag of allTagsArray) {
       if (tag.match(search_re)) {
         if (!sortTags) {
-          core.debug(`getLatestTag returns ${tag} `)
+          core.debug(`getLatestTag returns ${JSON.stringify(tag)} `)
           // Assume that the API returns the most recent tag(s) first.
           tagsList.push(parseVersionString(tag))
           return tagsList

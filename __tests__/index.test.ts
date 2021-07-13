@@ -48,6 +48,16 @@ describe('Get Versions', () => {
     .buildNum(45)
     .build()
 
+  let version5 = new VersionObjectBuilder()
+    .major(2)
+    .minor(22)
+    .patch(0)
+    .with_v('v')
+    .patch_prefix('.')
+    .minor_prefix('.')
+    .buildNum(24)
+    .build()
+
   test('version from tests/pom.xml to equal 1.0.0', () => {
     expect(maven_app_version('./__tests__/tests/pom.xml')).toBe('1.0.0')
   })
@@ -72,6 +82,10 @@ describe('Get Versions', () => {
 
   test(`versionObjToString given string ${JSON.stringify(version4)} should match v2.3.1-PR1234+45}`, () => {
     expect(versionObjToString(version4)).toStrictEqual('v2.3.1-PR1234+45')
+  })
+
+  test(`versionObjToString given string ${JSON.stringify(version5)} should match v2.22.0+24}`, () => {
+    expect(versionObjToString(version5)).toStrictEqual('v2.22.0+24')
   })
 })
 
