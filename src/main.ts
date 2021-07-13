@@ -1,11 +1,9 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 
-import {app_version as gradle_app_version} from './appVersionGradle'
-// import {Octokit} from '@octokit/rest'
-// import {RequestInterface} from '@octokit/types'
-import {app_version as maven_app_version} from './appVersionMaven'
-import {Repo} from './interfaces'
+import { app_version as gradle_app_version } from './appVersionGradle'
+import { app_version as maven_app_version } from './appVersionMaven'
+import { Repo } from './interfaces'
 import {
   basename,
   bumper,
@@ -21,23 +19,21 @@ import {
 
 async function run(): Promise<void> {
   try {
-    const {context} = github
+    const { context } = github
 
-    const {ref} = context.payload
-    // const payload = JSON.stringify(github.context.payload, undefined, 2)
-    // core.debug(`The event payload: ${payload}`)
-    const github_token = core.getInput('github_token', {required: false}) || process.env.GITHUB_TOKEN || null
-    const branch = core.getInput('branch', {required: false})
-    const pr = core.getInput('pr_number', {required: false}) || context.payload.number || null
-    const filepath = core.getInput('filepath', {required: true})
-    const default_version = core.getInput('default_version', {required: false})
-    const tag_prefix = core.getInput('tag_prefix', {required: false})
-    const releases_only = core.getInput('releases_only', {required: false}) === 'true'
-    const sort_tags = core.getInput('sort_tags', {required: false}) === 'true'
-    const bump = core.getInput('bump', {required: false})
-    const release_branch = core.getInput('release_branch', {required: true})
+    const { ref } = context.payload
+    const github_token = core.getInput('github_token', { required: false }) || process.env.GITHUB_TOKEN || null
+    const branch = core.getInput('branch', { required: false })
+    const pr = core.getInput('pr_number', { required: false }) || context.payload.number || null
+    const filepath = core.getInput('filepath', { required: true })
+    const default_version = core.getInput('default_version', { required: false })
+    const tag_prefix = core.getInput('tag_prefix', { required: false })
+    const releases_only = core.getInput('releases_only', { required: false }) === 'true'
+    const sort_tags = core.getInput('sort_tags', { required: false }) === 'true'
+    const bump = core.getInput('bump', { required: false })
+    const release_branch = core.getInput('release_branch', { required: true })
     /*  TODO: Add v prepending */
-    const prepend_v = core.getInput('prepend_v', {required: false}) === 'true'
+    const prepend_v = core.getInput('prepend_v', { required: false }) === 'true'
     const ignore_v_when_searching =
       core.getInput('ignore_v_when_searching', {
         required: false
@@ -64,7 +60,7 @@ async function run(): Promise<void> {
     const br = stripRefs(baseBranch)
     const is_release_branch = br?.startsWith(release_branch) || false
     const bump_item = !is_release_branch ? 'build' : bump
-    const repository = core.getInput('repository', {required: false}) || process.env.GITHUB_REPOSITORY || null
+    const repository = core.getInput('repository', { required: false }) || process.env.GITHUB_REPOSITORY || null
 
     let repos: null | Repo = null
 

@@ -98,8 +98,8 @@ function undfEmpty(vStr: string | number | undefined): string {
 }
 export function versionObjToString(vObj: VersionObject): string {
   const vStr = `${undfEmpty(vObj.with_v)}${vObj.major}${undfEmpty(vObj.minor_prefix)}${undfEmpty(
-    vObj.minor
-  )}${undfEmpty(vObj.patch_prefix)}${undfEmpty(vObj.patch)}${undfEmpty(vObj.legacy_build_prefix)}${undfEmpty(
+    vObj.minor === undefined ? 0 : vObj.minor
+  )}${undfEmpty(vObj.patch_prefix)}${vObj.patch === undefined ? 0 : vObj.patch}${undfEmpty(vObj.legacy_build_prefix)}${undfEmpty(
     vObj.legacy_build_number
   )}${undfEmpty(vObj.label_prefix)}${undfEmpty(vObj.label)}${vObj.build ? BUILD_PREFIX : ''}${undfEmpty(vObj.build)}`
 
@@ -241,9 +241,9 @@ export async function getLatestTag(
   let search_str
 
   if (ignore_v_when_searching) {
-    search_str = `^ (v) ? ${escapeRegExp(versionPrefixes.without_v)} `
+    search_str = `^(v)?${escapeRegExp(versionPrefixes.without_v)}`
   } else {
-    search_str = `^ ${tagPrefix} `
+    search_str = `^${tagPrefix}`
   }
   const search_re = RegExp(search_str)
   async function createTagList(_fromReleases: boolean): Promise<string[]> {
@@ -344,33 +344,3 @@ export function cmpTags(a: VersionObject, b: VersionObject): number {
 
   return result
 }
-
-// function tagSortKey(vo: VersionObject): (string | number)[] {
-//   const a: (string | number)[] = versionObjToArray(vo)
-//   // Example: 'v1.23rc4' -> ['v', '1', '.', '23', 'rc', '4', ''];
-
-//   for (let i = 0; i < a.length; i += 1) {
-//     // Give any string part that starts with a word character a sorting priority
-//     // by inserting a `false` (< `true`) item into the key array.
-//     if (typeof a[i] === 'string') {
-//       a.splice(i, 0, /^\B/.test(a[i].toString()) ? 'true' : 'false')
-//     }
-//   }
-//   // Examples (sorted):
-//   //
-//   // * 'v1.3'  -> [false, 'v', 1, true, '.', 3, true, '']
-//   // * '1.2b1' -> [true, '', 1, true, '.', 2, false, 'b', 1, true, '']
-//   // * '1.2'   -> [true, '', 1, true, '.', 2, true, '']
-//   // * '1.2-1' -> [true, '', 1, true, '.', 2, true, '-', 1, true, '']
-//   // * '1.11'  -> [true, '', 1, true, '.', 11, true, '']
-//   return a
-// }
-
-// function cmpArrays(a: (string | number)[], b: (string | number)[]): number {
-//   for (let i = 0; i < Math.min(a.length, b.length); ++i) {
-//     if (a[i] !== b[i]) {
-//       return a[i] > b[i] ? 1 : -1
-//     }
-//   }
-//   return a.length - b.length
-// }
