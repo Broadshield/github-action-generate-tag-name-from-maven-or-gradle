@@ -1,0 +1,71 @@
+name: 🏷️ Generate Tag Name from Maven or Gradle
+description: Generates a Git tag name for Pull Releases and Branches based on the application version in pom.xml or gradle.settings files
+branding:
+  color: blue
+  icon: git-pull-request
+inputs:
+  github_token:
+    description: The Github Token to authenticate with
+    required: false
+  default_version:
+    description: The default tag to use if no tags exist
+    required: false
+    default: ''
+  filepath:
+    description: The path to the pom.xml or build.gradle file
+    required: true
+    default: './pom.xml'
+  pr_number:
+    description: PR number to search for
+    required: false
+  branch:
+    description: branch to search for
+    required: false
+  tag_prefix:
+    description: Tag prefix used to search for the current version name to iterate
+    required: false
+  releases_only:
+    description: Search GitHub releases instead of Github Tags
+    required: false
+    default: 'true'
+  sort_tags:
+    required: false
+    description: Sort the tags in version order
+    default: 'true'
+  bump:
+    required: false
+    description: The version part to bump, can be major, minor, patch
+    default: patch
+  release_branch:
+    required: true
+    description: The release branch to bump
+  repository:
+    required: false
+    description: A named repository in the format Owner\repositoryName
+  prepend_v:
+    required: false
+    description: Prepend a v to tags. i.e. v1.0.0
+    default: 'true'
+  ignore_v_when_searching:
+    required: false
+    description: Searches for tags that have a 'v' at the start and without
+    default: 'true'
+  build_delimiter:
+    required: false
+    description: The delimiter character to use to separate the version from the build number
+    default: '+'
+  label_delimiter:
+    required: false
+    description: The delimiter character to use to separate the version from the label
+    default: '-'
+
+outputs:
+  tag_name:
+    description: The generated tag with the bump
+  app_version:
+    description: The App version found
+  search_prefix:
+    description: The search prefix used
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
