@@ -1,12 +1,12 @@
 /* eslint-disable security/detect-unsafe-regex */
 import * as core from '@actions/core'
-import { Context } from '@actions/github/lib/context'
-import { GitHub } from '@actions/github/lib/utils'
+import {Context} from '@actions/github/lib/context'
+import {GitHub} from '@actions/github/lib/utils'
 
-import { getKeyValue, Repo, VersionObject, VersionPrefixes } from './interfaces'
+import {getKeyValue, Repo, VersionObject, VersionPrefixes} from './interfaces'
 
-const LABEL_PREFIX = core.getInput('label_delimiter', { required: false }) || '-'
-const BUILD_PREFIX = core.getInput('build_delimiter', { required: false }) || '+'
+const LABEL_PREFIX = core.getInput('label_delimiter', {required: false}) || '-'
+const BUILD_PREFIX = core.getInput('build_delimiter', {required: false}) || '+'
 export const version_regex =
   /^(?<v>v)?(?<version>(?<major>[\d]+)(?<minor_prefix>\.)?(?<minor>[\d]+)?(?<patch_prefix>\.)?(?<patch>[\d]+)?)((?<legacy_build_prefix>_)(?<legacy_build_number>[\d]+))?((?<label_prefix>[-_])(?<label>[-_/0-9a-zA-Z]+))?([.+](?<build>[\d]+))?$/
 
@@ -36,7 +36,8 @@ export function normalize_version(v_string: string | undefined, default_version 
   }
   const used = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${Math.round(used * 100) / 100
+    `(${
+      Math.round(used * 100) / 100
     } MB) normalize_version passed ${v_string} with default ${default_version} and returns ${result}`
   )
   return result
@@ -74,43 +75,52 @@ export function repoSplit(inputRepo: string | undefined | null, context: Context
 // Functions
 export function versionObjToArray(vObj: VersionObject): (string | number)[] {
   const vArray: (string | number)[] = []
-  vArray.push(vObj.with_v || '')
-  vArray.push(vObj.major)
-  vArray.push(vObj.minor_prefix || '')
-  vArray.push(vObj.minor || '')
-  vArray.push(vObj.patch_prefix || '')
-  vArray.push(vObj.patch || '')
-  vArray.push(vObj.legacy_build_prefix || '')
-  vArray.push(vObj.legacy_build_number || '')
-  vArray.push(vObj.label_prefix || '')
-  vArray.push(vObj.label || '')
-  vArray.push(vObj.build ? '.' : '')
-  vArray.push(vObj.build || '')
+  vArray.push(undfEmpty(vObj.with_v))
+  vArray.push(undfEmpty(vObj.major))
+  vArray.push(undfEmpty(vObj.minor_prefix))
+  vArray.push(undfEmpty(vObj.minor))
+  vArray.push(undfEmpty(vObj.patch_prefix))
+  vArray.push(undfEmpty(vObj.patch))
+  vArray.push(undfEmpty(vObj.legacy_build_prefix))
+  vArray.push(undfEmpty(vObj.legacy_build_number))
+  vArray.push(undfEmpty(vObj.label_prefix))
+  vArray.push(undfEmpty(vObj.label))
+  vArray.push(vObj.build === undefined ? '.' : '')
+  vArray.push(undfEmpty(vObj.build))
 
   core.debug(`versionObjToArray passed ${JSON.stringify(vObj)} returns ${vArray.join('')}`)
   return vArray
 }
+function undfEmpty(vStr: string | number | undefined): string {
+  if (vStr == undefined) {
+    return ''
+  }
+  return vStr.toString()
+}
 export function versionObjToString(vObj: VersionObject): string {
-  const vStr = `${vObj.with_v || ''}${vObj.major}${vObj.minor_prefix || ''}${vObj.minor || ''}${vObj.patch_prefix || ''
-    }${vObj.patch || ''}${vObj.legacy_build_prefix || ''}${vObj.legacy_build_number || ''}${vObj.label_prefix || ''}${vObj.label || ''
-    }${vObj.build ? '.' : ''}${vObj.build || ''}`
+  const vStr = `${undfEmpty(vObj.with_v)}${vObj.major}${undfEmpty(vObj.minor_prefix)}${undfEmpty(
+    vObj.minor
+  )}${undfEmpty(vObj.patch_prefix)}${undfEmpty(vObj.patch)}${undfEmpty(vObj.legacy_build_prefix)}${undfEmpty(
+    vObj.legacy_build_number
+  )}${undfEmpty(vObj.label_prefix)}${undfEmpty(vObj.label)}${vObj.build ? '+' : ''}${undfEmpty(vObj.build)}`
 
-  core.debug(`versionObjToString passed ${JSON.stringify(vObj)} returns ${vStr}`)
+  core.debug(`versionObjToString passed ${JSON.stringify(vObj)} returns ${vStr} `)
   return vStr
 }
 
 export function bumper(versionObj: VersionObject, bumping: string, is_release_branch: boolean): string {
-  const currentVersion = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
+  const currentVersion = `${versionObj.major}.${versionObj.minor}.${versionObj.patch} `
   const label = versionObj.label || 'alpha'
   const v = versionObj.with_v || ''
 
   core.debug(`bumper passed version object ${versionObjToString(versionObj)} and bumping ${bumping}}`)
-  core.debug(`bumper-- currentVersion: ${currentVersion}, label: ${label}, v: ${v}`)
+  core.debug(`bumper-- currentVersion: ${currentVersion}, label: ${label}, v: ${v} `)
   let result
   if (bumping === 'build') {
     const buildnumber = (versionObj.build || 0) + 1
-    result = `${v}${currentVersion}${is_release_branch ? '' : LABEL_PREFIX}${is_release_branch ? '' : label
-      }${BUILD_PREFIX}${buildnumber}`
+    result = `${v} ${currentVersion} ${is_release_branch ? '' : LABEL_PREFIX} ${
+      is_release_branch ? '' : label
+    } ${BUILD_PREFIX} ${buildnumber} `
   } else if (['major', 'minor', 'patch'].includes(bumping)) {
     if (bumping === 'major') {
       versionObj.major = (versionObj.major || 0) + 1
@@ -122,20 +132,20 @@ export function bumper(versionObj: VersionObject, bumping: string, is_release_br
     } else if (bumping === 'patch') {
       versionObj.patch = (versionObj.patch || 0) + 1
     }
-    result = `${v}${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
+    result = `${v} ${versionObj.major}.${versionObj.minor}.${versionObj.patch} `
   } else {
-    throw Error(`Bump value must be one of: build, major, minor, or patch. Instead '${bumping}' was given`)
+    throw Error(`Bump value must be one of: build, major, minor, or patch.Instead '${bumping}' was given`)
   }
-  core.debug(`bumper returns: ${result}`)
+  core.debug(`bumper returns: ${result} `)
   return result
 }
 
 export function parseVersionString(str: string): VersionObject {
-  const vObj: VersionObject = { major: 0, minor: 0, patch: 0 }
+  const vObj: VersionObject = {major: 0, minor: 0, patch: 0}
 
   const search_re = version_regex
   const matcher = str?.match(search_re)
-  core.debug(`parseVersionString passed ${str}`)
+  core.debug(`parseVersionString passed ${str} `)
   if (matcher === null || matcher.groups === undefined) {
     throw new Error("parseVersionString: Version can't be found in string")
   }
@@ -155,7 +165,7 @@ export function parseVersionString(str: string): VersionObject {
   vObj.label = groups.label || undefined
   vObj.build = parseInt(groups.build) || undefined
 
-  core.debug(`parseVersionString returns ${JSON.stringify(vObj)}`)
+  core.debug(`parseVersionString returns ${JSON.stringify(vObj)} `)
   return vObj
 }
 
@@ -172,22 +182,22 @@ export function getVersionStringPrefix(
     } else if (bumping === 'minor') {
       result = `${versionObj.major}.`
     } else {
-      result = `${versionObj.major}.${versionObj.minor}`
+      result = `${versionObj.major}.${versionObj.minor} `
     }
   } else {
-    result = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`
+    result = `${versionObj.major}.${versionObj.minor}.${versionObj.patch} `
     if (!is_release_branch && (versionObj.label || suffix)) {
-      result = `${result}${LABEL_PREFIX}${versionObj.label || suffix}`
+      result = `${result} ${LABEL_PREFIX} ${versionObj.label || suffix} `
     }
   }
   if (versionObj.with_v) {
-    result = `${versionObj.with_v}${result}`
+    result = `${versionObj.with_v} ${result} `
   }
   const used = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
     `(${Math.round(used * 100) / 100} MB) getVersionStringPrefix passed versionObj ${JSON.stringify(
       versionObj
-    )} and bumping ${bumping} and returns ${result}`
+    )} and bumping ${bumping} and returns ${result} `
   )
   return result
 }
@@ -196,14 +206,14 @@ export function getVersionPrefixes(str: string): VersionPrefixes {
   const search_re = /^(v)?(?<version>.*)/
   const matcher = str?.match(search_re)
   const used = process.memoryUsage().heapUsed / 1024 / 1024
-  core.debug(`(${Math.round(used * 100) / 100} MB) parseVersionString passed ${str}`)
+  core.debug(`(${Math.round(used * 100) / 100} MB) parseVersionString passed ${str} `)
   if (matcher === null || matcher.groups === undefined || matcher.groups.version === undefined) {
     throw new Error("getVersionPrefixes: Version can't be found in string")
   }
 
   const groups = matcher.groups
   const version = groups.version
-  return { without_v: version, with_v: `v${version}` }
+  return {without_v: version, with_v: `v${version} `}
 }
 function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
@@ -219,8 +229,9 @@ export async function getLatestTag(
 ): Promise<VersionObject> {
   const usedUp = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${Math.round(usedUp * 100) / 100
-    } MB) getLatestTag passed owner: ${owner}, repo: ${repo}, tagPrefix: ${tagPrefix}, fromReleases: ${fromReleases}, sortTags: ${sortTags}`
+    `(${
+      Math.round(usedUp * 100) / 100
+    } MB) getLatestTag passed owner: ${owner}, repo: ${repo}, tagPrefix: ${tagPrefix}, fromReleases: ${fromReleases}, sortTags: ${sortTags} `
   )
   const pages = {
     owner,
@@ -233,9 +244,9 @@ export async function getLatestTag(
   let search_str
 
   if (ignore_v_when_searching) {
-    search_str = `^(v)?${escapeRegExp(versionPrefixes.without_v)}`
+    search_str = `^ (v) ? ${escapeRegExp(versionPrefixes.without_v)} `
   } else {
-    search_str = `^${tagPrefix}`
+    search_str = `^ ${tagPrefix} `
   }
   const search_re = RegExp(search_str)
   async function createTagList(_fromReleases: boolean): Promise<string[]> {
@@ -247,14 +258,14 @@ export async function getLatestTag(
       )
       used = process.memoryUsage().heapUsed / 1024 / 1024
       core.debug(
-        `(${Math.round(used * 100) / 100} MB) getLatestTag received tags from releases: found ${allNames.length}`
+        `(${Math.round(used * 100) / 100} MB) getLatestTag received tags from releases: found ${allNames.length} `
       )
     } else {
       allNames = await octokit.paginate(octokit.rest.repos.listTags, pages, response =>
         response.data.map(item => item.name)
       )
       used = process.memoryUsage().heapUsed / 1024 / 1024
-      core.debug(`(${Math.round(used * 100) / 100} MB) getLatestTag received tags from tags: found ${allNames.length}`)
+      core.debug(`(${Math.round(used * 100) / 100} MB) getLatestTag received tags from tags: found ${allNames.length} `)
     }
     return allNames
   }
@@ -264,13 +275,13 @@ export async function getLatestTag(
     for (const tag of allTagsArray) {
       if (tag.match(search_re)) {
         if (!sortTags) {
-          core.debug(`getLatestTag returns ${tag}`)
+          core.debug(`getLatestTag returns ${tag} `)
           // Assume that the API returns the most recent tag(s) first.
           tagsList.push(parseVersionString(tag))
           return tagsList
         }
         const used = process.memoryUsage().heapUsed / 1024 / 1024
-        core.debug(`(${Math.round(used * 100) / 100} MB) getMatchedTags adding tag ${tag}`)
+        core.debug(`(${Math.round(used * 100) / 100} MB) getMatchedTags adding tag ${tag} `)
         tagsList.push(parseVersionString(tag))
       }
     }
@@ -281,18 +292,18 @@ export async function getLatestTag(
   const tags = getMatchedTags(allTags)
 
   if (tags.length === 0) {
-    core.debug(`getLatestTag found 0 tags starting with prefix ${tagPrefix}`)
+    core.debug(`getLatestTag found 0 tags starting with prefix ${tagPrefix} `)
     return parseVersionString(tagPrefix)
   }
   const usedFin = process.memoryUsage().heapUsed / 1024 / 1024
   core.debug(
-    `(${Math.round(usedFin * 100) / 100} MB) getLatestTag found ${tags.length} tags starting with prefix ${tagPrefix}`
+    `(${Math.round(usedFin * 100) / 100} MB) getLatestTag found ${tags.length} tags starting with prefix ${tagPrefix} `
   )
-  core.debug(`getLatestTag found these tags: ${JSON.stringify(tags)}`)
+  core.debug(`getLatestTag found these tags: ${JSON.stringify(tags)} `)
 
   tags.sort(cmpTags)
   const [latestTag] = tags.slice(-1)
-  core.debug(`getLatestTag returns ${latestTag}`)
+  core.debug(`getLatestTag returns ${latestTag} `)
   return latestTag
 }
 

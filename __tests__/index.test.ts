@@ -2,17 +2,11 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 
-import { app_version as gradle_app_version } from '../src/appVersionGradle'
-import { app_version as maven_app_version } from '../src/appVersionMaven'
-import { Repo } from '../src/interfaces'
-import {
-  basename,
-  normalize_version,
-  parseVersionString,
-  repoSplit,
-  stripRefs
-} from '../src/utils'
-import { VersionObjectBuilder } from '../src/versionObjectBuilder'
+import {app_version as gradle_app_version} from '../src/appVersionGradle'
+import {app_version as maven_app_version} from '../src/appVersionMaven'
+import {Repo} from '../src/interfaces'
+import {basename, normalize_version, parseVersionString, repoSplit, stripRefs} from '../src/utils'
+import {VersionObjectBuilder} from '../src/versionObjectBuilder'
 
 let inputs = {} as any
 
@@ -126,7 +120,7 @@ describe('repoSplit utility', () => {
 
   beforeEach(() => {
     jest.resetModules() // most important - it clears the cache
-    process.env = { ...OLD_ENV } // make a copy
+    process.env = {...OLD_ENV} // make a copy
   })
 
   afterAll(() => {
