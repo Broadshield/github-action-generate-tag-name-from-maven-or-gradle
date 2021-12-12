@@ -130,7 +130,7 @@ export function bumper(versionObj: VersionObject, bumping: string, is_release_br
     } else if (bumping === 'patch') {
       versionObj.patch = (versionObj.patch || 0) + 1
     }
-    result = `${v} ${versionObj.major}.${versionObj.minor}.${versionObj.patch} `
+    result = `${v}${versionObj.major}.${versionObj.minor}.${versionObj.patch} `
   } else {
     throw Error(`Bump value must be one of: build, major, minor, or patch.Instead '${bumping}' was given`)
   }

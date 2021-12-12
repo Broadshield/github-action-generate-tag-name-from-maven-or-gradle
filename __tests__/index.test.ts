@@ -62,8 +62,12 @@ describe('Get Versions', () => {
     expect(maven_app_version('./__tests__/tests/pom.xml')).toBe('1.0.0')
   })
 
-  test('version from tests/build.gradle to equal 1.0.0', () => {
+  test('version from tests/build.gradle to equal 1.0.0-SNAPSHOT', () => {
     expect(gradle_app_version('./__tests__/tests/build.gradle')).toBe('1.0.0-SNAPSHOT')
+  })
+
+  test('version from tests/gradle.properties to equal 1.0.0-SNAPSHOT', () => {
+    expect(gradle_app_version('./__tests__/tests/gradle.properties')).toBe('1.0.0-SNAPSHOT')
   })
 
   test(`parseVersionString given string 2.3.1 should match ${JSON.stringify(version1)}`, () => {
