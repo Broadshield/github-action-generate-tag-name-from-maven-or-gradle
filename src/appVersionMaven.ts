@@ -19,7 +19,7 @@ export function app_version(path_str: string): string | undefined {
     const jsonObj = parser.parse(xmlData)
     return jsonObj.project.version
   } catch (err) {
-    core.error(err)
+    core.error(`ERROR: ${err}`)
     return undefined
   }
 }

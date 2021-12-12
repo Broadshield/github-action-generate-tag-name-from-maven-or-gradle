@@ -5,7 +5,7 @@ import * as path from 'path'
 
 export function app_version(path_str: string): string | undefined {
   const ext = path.extname(path_str)
-  if (ext !== null && ext.toLowerCase() !== '.gradle') {
+  if (ext !== null && (ext.toLowerCase() !== '.gradle' || ext.toLowerCase() !== '.properties')) {
     core.debug(`extension of path_str (${path_str}) isn't .gradle (ext is: ${ext})`)
     return undefined
   }
@@ -21,7 +21,7 @@ export function app_version(path_str: string): string | undefined {
 
     return version === undefined ? undefined : `${version}`
   } catch (e) {
-    core.error(e)
+    core.error(`ERROR: ${e}`)
     return undefined
   }
 }
