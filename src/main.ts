@@ -112,7 +112,7 @@ async function run(): Promise<void> {
     core.info(`App Version: ${appVersion}`)
     core.info(`Search Prefix: ${searchPrefix}`)
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(`ERROR: ${error}`)
   }
 }
 
