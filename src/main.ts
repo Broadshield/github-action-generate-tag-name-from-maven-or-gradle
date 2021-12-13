@@ -27,13 +27,14 @@ async function run(): Promise<void> {
         const branch = core.getInput('branch', { required: false });
         const pr =
             core.getInput('pr_number', { required: false }) || context.payload.number || null;
-        const filepath = core.getInput('filepath', { required: true });
-        const default_version = core.getInput('default_version', { required: false });
-        const tag_prefix = core.getInput('tag_prefix', { required: false });
-        const releases_only = core.getInput('releases_only', { required: false }) === 'true';
-        const sort_tags = core.getInput('sort_tags', { required: false }) === 'true';
-        const bump = core.getInput('bump', { required: false });
-        const release_branch = core.getInput('release_branch', { required: true });
+        const filepath = core.getInput('filepath', { required: true })?.trim();
+        const default_version = core.getInput('default_version', { required: false })?.trim();
+        const tag_prefix = core.getInput('tag_prefix', { required: false })?.trim() || 'v';
+        const releases_only =
+            core.getInput('releases_only', { required: false })?.trim() === 'true';
+        const sort_tags = core.getInput('sort_tags', { required: false })?.trim() === 'true';
+        const bump = core.getInput('bump', { required: false })?.trim();
+        const release_branch = core.getInput('release_branch', { required: true })?.trim();
         /*  TODO: Add v prepending */
         const prepend_v = core.getInput('prepend_v', { required: false }) === 'true';
         const ignore_v_when_searching =
@@ -58,7 +59,7 @@ async function run(): Promise<void> {
         // It's somewhat safe to assume that the most recently created release is actually latest.
         const sortTagsDefault = releases_only ? 'false' : 'true';
         const sortTags = (`${sort_tags}` || sortTagsDefault).toLowerCase() === 'true';
-        const baseBranch = branch || ref;
+        const baseBranch: string = branch || ref;
         const br = stripRefs(baseBranch);
         const is_release_branch = br?.startsWith(release_branch) || false;
         const bump_item = !is_release_branch ? 'build' : bump;

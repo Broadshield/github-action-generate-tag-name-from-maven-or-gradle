@@ -24,11 +24,12 @@ export function stripRefs(path: string): string | null {
     return result;
 }
 
-export function normalize_version(v_string: string | undefined, default_version = '0.0.1'): string {
+export function normalize_version(v_string?: string, default_version = '0.0.1'): string {
     let result;
-    const VERSION_RE = /^([v])?(?<version>[0-9]+\.[0-9]+\.[0-9])/;
+    const VERSION_RE = /^([Vv])?(?<version>[\d]+\.[\d]+\.[\d])/;
     if (v_string === undefined) return default_version;
-    const match = VERSION_RE.exec(v_string);
+    const strToNormalize = v_string?.trim();
+    const match = VERSION_RE.exec(strToNormalize);
     if (match && match.groups) {
         result = match.groups.version;
     } else {
@@ -40,19 +41,17 @@ export function normalize_version(v_string: string | undefined, default_version 
             Math.round(used * 100) / 100
         } MB) normalize_version passed ${v_string} with default ${default_version} and returns ${result}`,
     );
-    return result;
+    return result?.trim();
 }
 
 export function repoSplit(inputRepo: string | undefined | null, context: Context): Repo | null {
     const result: Repo = {} as Repo;
-    let owner;
-    let repo;
     if (inputRepo) {
-        [owner, repo] = inputRepo.split('/');
+        [result.owner, result.repo] = inputRepo.split('/');
 
         core.debug(`repoSplit passed ${inputRepo} and returns ${JSON.stringify(result)}`);
     } else if (process.env.GITHUB_REPOSITORY) {
-        [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+        [result.owner, result.repo] = process.env.GITHUB_REPOSITORY.split('/');
 
         core.debug(
             `repoSplit using GITHUB_REPOSITORY ${
@@ -60,8 +59,8 @@ export function repoSplit(inputRepo: string | undefined | null, context: Context
             } and returns ${JSON.stringify(result)}`,
         );
     } else if (context.repo) {
-        owner = context.repo.owner;
-        repo = context.repo.repo;
+        result.owner = context.repo.owner;
+        result.repo = context.repo.repo;
 
         core.debug(
             `repoSplit using GITHUB_REPOSITORY ${
@@ -69,9 +68,7 @@ export function repoSplit(inputRepo: string | undefined | null, context: Context
             } and returns ${JSON.stringify(result)}`,
         );
     }
-    if (repo && owner) {
-        result.owner = owner;
-        result.repo = repo;
+    if (result.repo && result.owner) {
         return result;
     }
     throw Error("repoSplit requires a GITHUB_REPOSITORY environment variable like 'owner/repo'");
@@ -197,16 +194,16 @@ export function getVersionStringPrefix(
         } else if (bumping === 'minor') {
             result = `${versionObj.major}.`;
         } else {
-            result = `${versionObj.major}.${versionObj.minor} `;
+            result = `${versionObj.major}.${versionObj.minor}`;
         }
     } else {
-        result = `${versionObj.major}.${versionObj.minor}.${versionObj.patch} `;
+        result = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`;
         if (!is_release_branch && (versionObj.label || suffix)) {
-            result = `${result} ${LABEL_PREFIX} ${versionObj.label || suffix} `;
+            result = `${result}${LABEL_PREFIX}${versionObj.label || suffix}`;
         }
     }
     if (versionObj.with_v) {
-        result = `${versionObj.with_v} ${result} `;
+        result = `${versionObj.with_v}${result}`;
     }
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     core.debug(
