@@ -129,10 +129,11 @@ function stripRefs(path) {
 exports.stripRefs = stripRefs;
 function normalize_version(v_string, default_version = '0.0.1') {
     let result;
-    const VERSION_RE = /^([v])?(?<version>[0-9]+\.[0-9]+\.[0-9])/;
+    const VERSION_RE = /^([Vv])?(?<version>[\d]+\.[\d]+\.[\d])/;
     if (v_string === undefined)
         return default_version;
-    const match = VERSION_RE.exec(v_string);
+    const strToNormalize = v_string?.trim();
+    const match = VERSION_RE.exec(strToNormalize);
     if (match && match.groups) {
         result = match.groups.version;
     }
@@ -141,29 +142,25 @@ function normalize_version(v_string, default_version = '0.0.1') {
     }
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     core.debug(`(${Math.round(used * 100) / 100} MB) normalize_version passed ${v_string} with default ${default_version} and returns ${result}`);
-    return result;
+    return result?.trim();
 }
 exports.normalize_version = normalize_version;
 function repoSplit(inputRepo, context) {
     const result = {};
-    let owner;
-    let repo;
     if (inputRepo) {
-        [owner, repo] = inputRepo.split('/');
+        [result.owner, result.repo] = inputRepo.split('/');
         core.debug(`repoSplit passed ${inputRepo} and returns ${JSON.stringify(result)}`);
     }
     else if (process.env.GITHUB_REPOSITORY) {
-        [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+        [result.owner, result.repo] = process.env.GITHUB_REPOSITORY.split('/');
         core.debug(`repoSplit using GITHUB_REPOSITORY ${process.env.GITHUB_REPOSITORY} and returns ${JSON.stringify(result)}`);
     }
     else if (context.repo) {
-        owner = context.repo.owner;
-        repo = context.repo.repo;
+        result.owner = context.repo.owner;
+        result.repo = context.repo.repo;
         core.debug(`repoSplit using GITHUB_REPOSITORY ${process.env.GITHUB_REPOSITORY} and returns ${JSON.stringify(result)}`);
     }
-    if (repo && owner) {
-        result.owner = owner;
-        result.repo = repo;
+    if (result.repo && result.owner) {
         return result;
     }
     throw Error("repoSplit requires a GITHUB_REPOSITORY environment variable like 'owner/repo'");
@@ -266,17 +263,17 @@ function getVersionStringPrefix(versionObj, bumping, suffix, is_release_branch) 
             result = `${versionObj.major}.`;
         }
         else {
-            result = `${versionObj.major}.${versionObj.minor} `;
+            result = `${versionObj.major}.${versionObj.minor}`;
         }
     }
     else {
-        result = `${versionObj.major}.${versionObj.minor}.${versionObj.patch} `;
+        result = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`;
         if (!is_release_branch && (versionObj.label || suffix)) {
-            result = `${result} ${LABEL_PREFIX} ${versionObj.label || suffix} `;
+            result = `${result}${LABEL_PREFIX}${versionObj.label || suffix}`;
         }
     }
     if (versionObj.with_v) {
-        result = `${versionObj.with_v} ${result} `;
+        result = `${versionObj.with_v}${result}`;
     }
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     core.debug(`(${Math.round(used * 100) / 100} MB) getVersionStringPrefix passed versionObj ${JSON.stringify(versionObj)} and bumping ${bumping} and returns ${result}`);
@@ -12313,13 +12310,13 @@ async function run() {
         const github_token = core.getInput('github_token', { required: false }) || process.env.GITHUB_TOKEN || null;
         const branch = core.getInput('branch', { required: false });
         const pr = core.getInput('pr_number', { required: false }) || context.payload.number || null;
-        const filepath = core.getInput('filepath', { required: true });
-        const default_version = core.getInput('default_version', { required: false });
-        const tag_prefix = core.getInput('tag_prefix', { required: false });
-        const releases_only = core.getInput('releases_only', { required: false }) === 'true';
-        const sort_tags = core.getInput('sort_tags', { required: false }) === 'true';
-        const bump = core.getInput('bump', { required: false });
-        const release_branch = core.getInput('release_branch', { required: true });
+        const filepath = core.getInput('filepath', { required: true })?.trim();
+        const default_version = core.getInput('default_version', { required: false })?.trim();
+        const tag_prefix = core.getInput('tag_prefix', { required: false })?.trim() || 'v';
+        const releases_only = core.getInput('releases_only', { required: false })?.trim() === 'true';
+        const sort_tags = core.getInput('sort_tags', { required: false })?.trim() === 'true';
+        const bump = core.getInput('bump', { required: false })?.trim();
+        const release_branch = core.getInput('release_branch', { required: true })?.trim();
         const prepend_v = core.getInput('prepend_v', { required: false }) === 'true';
         const ignore_v_when_searching = core.getInput('ignore_v_when_searching', {
             required: false,
