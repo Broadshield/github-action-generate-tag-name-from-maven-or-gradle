@@ -3,7 +3,7 @@
   "eslint.codeAction.showDocumentation": {
     "enable": true
   },
-
+  "prettier.configPath": ".prettierrc.json",
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.formatOnSave": true,
   "eslint.alwaysShowStatus": true,
@@ -11,20 +11,14 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+  "[typescript]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    }
   },
-  "[ts]": {
-    "editor.codeActionsOnSave": "source.fixAll.eslint"
-  },
-  "javascript.format.semicolons": "remove",
-  "typescript.format.semicolons": "remove",
-  "typescriptHero.imports.insertSemicolons": false,
-  "typescript.preferences.quoteStyle": "single",
-  "javascript.preferences.quoteStyle": "single",
-  "vetur.format.defaultFormatterOptions": {
-    "prettier": {
-      "semi": false
+  "[javascript]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
     }
   }
 }

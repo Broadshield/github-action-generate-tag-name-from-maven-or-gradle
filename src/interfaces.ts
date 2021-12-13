@@ -1,33 +1,40 @@
 export interface Repo {
-  owner: string
-  repo: string
+    owner: string;
+    repo: string;
 }
 
 export interface VersionPrefixes {
-  without_v: string
-  with_v: string
+    without_v: string;
+    with_v: string;
 }
-// eslint-disable-next-line @typescript-eslint/ban-types,security/detect-object-injection
-export const getKeyValue =
-  <U extends keyof T, T extends object>(key: U) =>
-  (obj: T) =>
-    // eslint-disable-next-line security/detect-object-injection
-    obj[key]
+export type VersionObjectRecordValueType = string | number | undefined;
+
 // v1.1
 // v1.7.6
 export interface VersionObject {
-  with_v?: string
-  major: number
-  minor_prefix?: string
-  minor?: number
-  patch_prefix?: string
-  patch?: number
-  legacy_build_prefix?: string
-  legacy_build_number?: number
-  label_prefix?: string
-  label?: string
-  build?: number
+    with_v?: string;
+    major: number;
+    minor_prefix?: string;
+    minor?: number;
+    patch_prefix?: string;
+    patch?: number;
+    legacy_build_prefix?: string;
+    legacy_build_number?: number;
+    label_prefix?: string;
+    label?: string;
+    build?: number;
 }
+export const getKeyValue =
+    <U extends keyof T, T extends VersionObject>(key: U) =>
+    (obj: T): string | number | undefined => {
+        if (typeof obj[key] == 'string') {
+            return (<unknown>obj[key]) as string;
+        } else if (typeof obj[key] == 'number') {
+            return (<unknown>obj[key]) as number;
+        } else {
+            return undefined;
+        }
+    };
 
 // // eslint-disable-next-line no-shadow
 // export enum Ordering {
