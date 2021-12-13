@@ -1,17 +1,17 @@
 {
-  "paths": {
-    "action": "action.yml",
-    "readme": "README.md"
-  },
-  "show_logo": "true",
-  "versioning": {
-    "enabled": "true",
-    "override": "",
-    "prefix": "v",
-    "branch": "main"
-  },
-  "owner": "Broadshield",
-  "repo": "github-action-generate-tag-name-from-maven-or-gradle",
-  "title_prefix": "GitHub Action: ",
-  "pretty": "true"
+    "paths": {
+        "action": "action.yml",
+        "readme": "README.md"
+    },
+    "show_logo": "true",
+    "versioning": {
+        "enabled": "true",
+        "override": "",
+        "prefix": "v",
+        "branch": "main"
+    },
+    "owner": "Broadshield",
+    "repo": "github-action-generate-tag-name-from-maven-or-gradle",
+    "title_prefix": "GitHub Action: ",
+    "pretty": "true"
 }

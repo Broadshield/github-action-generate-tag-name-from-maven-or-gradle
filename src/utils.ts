@@ -2,7 +2,13 @@ import * as core from '@actions/core';
 import { Context } from '@actions/github/lib/context';
 import { GitHub } from '@actions/github/lib/utils';
 
-import { getKeyValue, Repo, VersionObject, VersionPrefixes } from './interfaces';
+import {
+    getKeyValue,
+    Repo,
+    VersionObject,
+    VersionObjectRecordValueType,
+    VersionPrefixes,
+} from './interfaces';
 
 type VersionFieldType = string | number;
 const LABEL_PREFIX = core.getInput('label_delimiter', { required: false }) || '-';
@@ -217,10 +223,10 @@ export function getVersionStringPrefix(
 }
 
 export function getVersionPrefixes(str: string): VersionPrefixes {
-    const search_re = /^(v)?(?<version>.*)/;
+    const search_re = /^([Vv])?(?<version>.*)/;
     const matcher = str?.match(search_re);
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
-    core.debug(`(${Math.round(used * 100) / 100} MB) parseVersionString passed ${str}`);
+    core.debug(`(${Math.round(used * 100) / 100} MB) getVersionPrefixes passed ${str}`);
     if (matcher === null || matcher.groups === undefined || matcher.groups.version === undefined) {
         throw new Error("getVersionPrefixes: Version can't be found in string");
     }
@@ -329,7 +335,7 @@ export async function getLatestTag(
     return latestTag;
 }
 
-function cmp(a: number | string | undefined, b: number | string | undefined): number {
+function cmp(a: VersionObjectRecordValueType, b: VersionObjectRecordValueType): number {
     if (a === undefined && b === undefined) {
         return 0;
     }

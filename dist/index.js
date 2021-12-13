@@ -281,10 +281,10 @@ function getVersionStringPrefix(versionObj, bumping, suffix, is_release_branch) 
 }
 exports.getVersionStringPrefix = getVersionStringPrefix;
 function getVersionPrefixes(str) {
-    const search_re = /^(v)?(?<version>.*)/;
+    const search_re = /^([Vv])?(?<version>.*)/;
     const matcher = str?.match(search_re);
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
-    core.debug(`(${Math.round(used * 100) / 100} MB) parseVersionString passed ${str}`);
+    core.debug(`(${Math.round(used * 100) / 100} MB) getVersionPrefixes passed ${str}`);
     if (matcher === null || matcher.groups === undefined || matcher.groups.version === undefined) {
         throw new Error("getVersionPrefixes: Version can't be found in string");
     }
@@ -12312,7 +12312,7 @@ async function run() {
         const pr = core.getInput('pr_number', { required: false }) || context.payload.number || null;
         const filepath = core.getInput('filepath', { required: true })?.trim();
         const default_version = core.getInput('default_version', { required: false })?.trim();
-        const tag_prefix = core.getInput('tag_prefix', { required: false })?.trim() || 'v';
+        const tag_prefix = core.getInput('tag_prefix', { required: false })?.trim();
         const releases_only = core.getInput('releases_only', { required: false })?.trim() === 'true';
         const sort_tags = core.getInput('sort_tags', { required: false })?.trim() === 'true';
         const bump = core.getInput('bump', { required: false })?.trim();

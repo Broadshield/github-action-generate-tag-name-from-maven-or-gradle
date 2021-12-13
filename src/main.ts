@@ -29,7 +29,7 @@ async function run(): Promise<void> {
             core.getInput('pr_number', { required: false }) || context.payload.number || null;
         const filepath = core.getInput('filepath', { required: true })?.trim();
         const default_version = core.getInput('default_version', { required: false })?.trim();
-        const tag_prefix = core.getInput('tag_prefix', { required: false })?.trim() || 'v';
+        const tag_prefix = core.getInput('tag_prefix', { required: false })?.trim();
         const releases_only =
             core.getInput('releases_only', { required: false })?.trim() === 'true';
         const sort_tags = core.getInput('sort_tags', { required: false })?.trim() === 'true';

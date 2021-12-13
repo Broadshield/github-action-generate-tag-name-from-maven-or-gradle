@@ -72,7 +72,7 @@
         "package": "rimraf lib dist;tsc;ncc build lib/main.js -o dist --source-map --license licenses.txt",
         "build-docker": "yarn run build-debug;docker build -t github-action-generate-tag-name-from-maven-or-gradle .",
         "release": "yarn run format && yarn run lint && yarn run build && yarn run package",
-        "all": "yarn run build && yarn run format && yarn run lint && yarn run package && yarn test",
+        "all": "yarn run format:fix && yarn run lint:fix && yarn run package && yarn test",
         "prepare": "husky install;git config --global rebase.autosquash true",
         "pre-commit": "lint-staged && yon run build && git add dist && yarn run generate-docs",
         "pre-push": "yarn format:fix",
