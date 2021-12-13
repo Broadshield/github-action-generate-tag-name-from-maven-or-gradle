@@ -67,5 +67,5 @@ outputs:
   search_prefix:
     description: The search prefix used
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
