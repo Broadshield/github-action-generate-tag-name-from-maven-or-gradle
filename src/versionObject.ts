@@ -59,14 +59,20 @@ export class VersionObject {
     get version(): VersionObjectStringRecordValueType {
         return this.data.version;
     }
-    get major(): VersionObjectNumberRecordValueType {
-        return this.data.major;
+    get major(): number {
+        return this.data.major || 0;
     }
-    get minor(): VersionObjectNumberRecordValueType {
-        return this.data.minor;
+    get minor(): number {
+        return this.data.minor || 0;
     }
-    get patch(): VersionObjectNumberRecordValueType {
-        return this.data.patch;
+    get patch(): number {
+        return this.data.patch || 0;
+    }
+    get minor_prefix(): string {
+        return this.data.minor_prefix || '.';
+    }
+    get patch_prefix(): string {
+        return this.data.patch_prefix || '.';
     }
     get legacy_build_number(): VersionObjectNumberRecordValueType {
         return this.data.legacy_build_number;
@@ -80,17 +86,20 @@ export class VersionObject {
 
     constructor(v?: string | VersionObject) {
         this.data = {} as VersionRecords;
-        if (v) {
+        if (v !== undefined) {
             if (typeof v === 'string') {
                 this.rawVersion = v;
                 this.parse();
             } else {
-                for (const key in v) {
-                    this.data[key] = v.data[key];
+                if (v.rawVersion !== undefined) {
+                    this.rawVersion = v.rawVersion;
+                    this.parse();
                 }
-                this.rawVersion = v.rawVersion;
-                this.rawBuild = v.rawBuild;
-                this.rawLabel = v.rawLabel;
+                for (const key in v) {
+                    if (v.data[key] !== undefined) {
+                        this.data[key] = v.data[key];
+                    }
+                }
             }
         }
     }
@@ -144,11 +153,11 @@ export class VersionObject {
     public toArray(): VersionFieldType[] {
         const vArray: VersionFieldType[] = [];
         vArray.push(this.undfEmpty(this.data.with_v));
-        vArray.push(this.undfEmpty(this.data.major));
-        vArray.push(this.undfEmpty(this.data.minor_prefix));
-        vArray.push(this.undfEmpty(this.data.minor));
-        vArray.push(this.undfEmpty(this.data.patch_prefix));
-        vArray.push(this.undfEmpty(this.data.patch));
+        vArray.push(this.major);
+        vArray.push(this.minor_prefix);
+        vArray.push(this.minor);
+        vArray.push(this.patch_prefix);
+        vArray.push(this.patch);
         vArray.push(this.undfEmpty(this.data.legacy_build_prefix));
         vArray.push(this.undfEmpty(this.data.legacy_build_number));
         vArray.push(this.undfEmpty(this.data.label_prefix));
@@ -170,16 +179,16 @@ export class VersionObject {
         const v = new VersionObject(this);
         switch (bumpType) {
             case BumpType.Major:
-                v.data.major = (v.data.major || 0) + 1;
+                v.data.major = v.major + 1;
                 v.data.minor = 0;
                 v.data.patch = 0;
                 break;
             case BumpType.Minor:
-                v.data.minor = (v.data.minor || 0) + 1;
+                v.data.minor = v.minor + 1;
                 v.data.patch = 0;
                 break;
             case BumpType.Patch:
-                v.data.patch = (v.data.patch || 0) + 1;
+                v.data.patch = v.patch + 1;
                 break;
             case BumpType.Build:
                 v.data.build = (v.data.build || 0) + 1;
@@ -190,20 +199,19 @@ export class VersionObject {
         return v;
     }
     versionString(): string {
-        const vStr = `${this.data.major}${this.undfEmpty(this.data.minor_prefix)}${this.undfEmpty(
-            this.data.minor === undefined ? 0 : this.data.minor,
-        )}${this.undfEmpty(this.data.patch_prefix)}${
-            this.data.patch === undefined ? 0 : this.data.patch
-        }`;
+        const vStr = `${this.data.major}${this.minor_prefix}${this.minor}${this.patch_prefix}${this.patch}`;
 
-        core.debug(`versionString() passed ${JSON.stringify(this.data)} returns ${vStr}`);
+        core.debug(`versionString() returns ${vStr}`);
         return vStr;
     }
-    releaseString(): string {
-        const vStr = `${this.undfEmpty(this.data.with_v)}${this.versionString()}`;
-
-        core.debug(`releaseString() passed ${JSON.stringify(this.data)} returns ${vStr}`);
-        return vStr;
+    releaseString(display_v?: boolean): string {
+        const should_display_v: boolean =
+            display_v === undefined ? this.data.with_v?.toLowerCase() === 'v' : display_v;
+        if (should_display_v) {
+            return `v${this.versionString()}`;
+        } else {
+            return `${this.versionString()}`;
+        }
     }
     toString(): string {
         const vStr = `${this.releaseString()}${this.undfEmpty(
@@ -232,7 +240,7 @@ export class VersionObject {
             case BumpType.Build:
                 result = `${this.major}.${this.minor}.${this.patch}`;
                 if (!is_release_branch && (this.label || suffix)) {
-                    result = `${result}${LABEL_PREFIX}${this.label || suffix}`;
+                    result = `${result}${LABEL_PREFIX}${this.label || suffix || ''}`;
                 }
                 break;
             default:
@@ -240,7 +248,7 @@ export class VersionObject {
         }
 
         if (this.with_v) {
-            result = `${this.with_v}${result}`;
+            result = `${this.undfEmpty(this.with_v)}${result}`;
         }
         const used = process.memoryUsage().heapUsed / 1024 / 1024;
         core.debug(

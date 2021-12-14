@@ -159,14 +159,13 @@ function repoSplit(inputRepo, context) {
 exports.repoSplit = repoSplit;
 function bumper(versionObj, bumping, is_release_branch) {
     const newVersion = versionObj.bump(bumping);
-    newVersion.data.label = versionObj.label || 'alpha';
     core.debug(`bumper() passed version object ${versionObj.toString()} and bumping ${bumping}}`);
     if (!is_release_branch) {
-        core.debug(`bumper() not in release branch will return ${versionObj.toString()}`);
+        core.debug(`bumper() not in release branch will return ${newVersion.toString()}`);
         return newVersion.toString();
     }
     else {
-        core.debug(`bumper() in release branch will return ${versionObj.releaseString()}`);
+        core.debug(`bumper() in release branch will return ${newVersion.releaseString()}`);
         return newVersion.releaseString();
     }
 }
@@ -179,9 +178,7 @@ function getVersionPrefixes(str) {
     if (!matcher || !matcher.groups || !matcher.groups.version) {
         throw new Error("getVersionPrefixes: Version can't be found in string");
     }
-    const groups = matcher.groups;
-    const version = groups.version;
-    return { without_v: version, with_v: `v${version}` };
+    return { without_v: matcher.groups.version, with_v: `v${matcher.groups.version}` };
 }
 exports.getVersionPrefixes = getVersionPrefixes;
 function escapeRegExp(str) {
@@ -310,18 +307,21 @@ class VersionObject {
         this.build_regex = /\+(?<build>[\d]+$)$/;
         this.label_regex = /(?<label_prefix>[-_])(?<label>.*)/;
         this.data = {};
-        if (v) {
+        if (v !== undefined) {
             if (typeof v === 'string') {
                 this.rawVersion = v;
                 this.parse();
             }
             else {
-                for (const key in v) {
-                    this.data[key] = v.data[key];
+                if (v.rawVersion !== undefined) {
+                    this.rawVersion = v.rawVersion;
+                    this.parse();
                 }
-                this.rawVersion = v.rawVersion;
-                this.rawBuild = v.rawBuild;
-                this.rawLabel = v.rawLabel;
+                for (const key in v) {
+                    if (v.data[key] !== undefined) {
+                        this.data[key] = v.data[key];
+                    }
+                }
             }
         }
     }
@@ -332,13 +332,19 @@ class VersionObject {
         return this.data.version;
     }
     get major() {
-        return this.data.major;
+        return this.data.major || 0;
     }
     get minor() {
-        return this.data.minor;
+        return this.data.minor || 0;
     }
     get patch() {
-        return this.data.patch;
+        return this.data.patch || 0;
+    }
+    get minor_prefix() {
+        return this.data.minor_prefix || '.';
+    }
+    get patch_prefix() {
+        return this.data.patch_prefix || '.';
     }
     get legacy_build_number() {
         return this.data.legacy_build_number;
@@ -397,11 +403,11 @@ class VersionObject {
     toArray() {
         const vArray = [];
         vArray.push(this.undfEmpty(this.data.with_v));
-        vArray.push(this.undfEmpty(this.data.major));
-        vArray.push(this.undfEmpty(this.data.minor_prefix));
-        vArray.push(this.undfEmpty(this.data.minor));
-        vArray.push(this.undfEmpty(this.data.patch_prefix));
-        vArray.push(this.undfEmpty(this.data.patch));
+        vArray.push(this.major);
+        vArray.push(this.minor_prefix);
+        vArray.push(this.minor);
+        vArray.push(this.patch_prefix);
+        vArray.push(this.patch);
         vArray.push(this.undfEmpty(this.data.legacy_build_prefix));
         vArray.push(this.undfEmpty(this.data.legacy_build_number));
         vArray.push(this.undfEmpty(this.data.label_prefix));
@@ -421,16 +427,16 @@ class VersionObject {
         const v = new VersionObject(this);
         switch (bumpType) {
             case interfaces_1.BumpType.Major:
-                v.data.major = (v.data.major || 0) + 1;
+                v.data.major = v.major + 1;
                 v.data.minor = 0;
                 v.data.patch = 0;
                 break;
             case interfaces_1.BumpType.Minor:
-                v.data.minor = (v.data.minor || 0) + 1;
+                v.data.minor = v.minor + 1;
                 v.data.patch = 0;
                 break;
             case interfaces_1.BumpType.Patch:
-                v.data.patch = (v.data.patch || 0) + 1;
+                v.data.patch = v.patch + 1;
                 break;
             case interfaces_1.BumpType.Build:
                 v.data.build = (v.data.build || 0) + 1;
@@ -441,14 +447,18 @@ class VersionObject {
         return v;
     }
     versionString() {
-        const vStr = `${this.data.major}${this.undfEmpty(this.data.minor_prefix)}${this.undfEmpty(this.data.minor === undefined ? 0 : this.data.minor)}${this.undfEmpty(this.data.patch_prefix)}${this.data.patch === undefined ? 0 : this.data.patch}`;
-        core.debug(`versionString() passed ${JSON.stringify(this.data)} returns ${vStr}`);
+        const vStr = `${this.data.major}${this.minor_prefix}${this.minor}${this.patch_prefix}${this.patch}`;
+        core.debug(`versionString() returns ${vStr}`);
         return vStr;
     }
-    releaseString() {
-        const vStr = `${this.undfEmpty(this.data.with_v)}${this.versionString()}`;
-        core.debug(`releaseString() passed ${JSON.stringify(this.data)} returns ${vStr}`);
-        return vStr;
+    releaseString(display_v) {
+        const should_display_v = display_v === undefined ? this.data.with_v?.toLowerCase() === 'v' : display_v;
+        if (should_display_v) {
+            return `v${this.versionString()}`;
+        }
+        else {
+            return `${this.versionString()}`;
+        }
     }
     toString() {
         const vStr = `${this.releaseString()}${this.undfEmpty(this.data.legacy_build_prefix)}${this.undfEmpty(this.data.legacy_build_number)}${this.undfEmpty(this.data.label_prefix)}${this.undfEmpty(this.data.label)}${this.undfEmpty(this.data.build ? exports.BUILD_PREFIX : '')}${this.undfEmpty(this.data.build)}`;
@@ -470,14 +480,14 @@ class VersionObject {
             case interfaces_1.BumpType.Build:
                 result = `${this.major}.${this.minor}.${this.patch}`;
                 if (!is_release_branch && (this.label || suffix)) {
-                    result = `${result}${exports.LABEL_PREFIX}${this.label || suffix}`;
+                    result = `${result}${exports.LABEL_PREFIX}${this.label || suffix || ''}`;
                 }
                 break;
             default:
                 throw Error(`BumpType ${bumping} not supported`);
         }
         if (this.with_v) {
-            result = `${this.with_v}${result}`;
+            result = `${this.undfEmpty(this.with_v)}${result}`;
         }
         const used = process.memoryUsage().heapUsed / 1024 / 1024;
         core.debug(`(${Math.round(used * 100) / 100} MB) prefixString(): passed ${JSON.stringify(this)} and bumping ${bumping} and returns ${result}`);

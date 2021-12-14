@@ -83,14 +83,12 @@ export function bumper(
 ): string {
     const newVersion = versionObj.bump(bumping);
 
-    newVersion.data.label = versionObj.label || 'alpha';
-
     core.debug(`bumper() passed version object ${versionObj.toString()} and bumping ${bumping}}`);
     if (!is_release_branch) {
-        core.debug(`bumper() not in release branch will return ${versionObj.toString()}`);
+        core.debug(`bumper() not in release branch will return ${newVersion.toString()}`);
         return newVersion.toString();
     } else {
-        core.debug(`bumper() in release branch will return ${versionObj.releaseString()}`);
+        core.debug(`bumper() in release branch will return ${newVersion.releaseString()}`);
         return newVersion.releaseString();
     }
 }
@@ -104,9 +102,7 @@ export function getVersionPrefixes(str: string): VersionPrefixes {
         throw new Error("getVersionPrefixes: Version can't be found in string");
     }
 
-    const groups = matcher.groups;
-    const version = groups.version;
-    return { without_v: version, with_v: `v${version}` };
+    return { without_v: matcher.groups.version, with_v: `v${matcher.groups.version}` };
 }
 function escapeRegExp(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
