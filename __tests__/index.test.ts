@@ -1,8 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import { app_version as gradle_app_version } from '../src/appVersionGradle';
-import { app_version as maven_app_version } from '../src/appVersionMaven';
+import { app_version } from '../src/appVersion';
 import { Repo } from '../src/interfaces';
 import { basename, normalize_version, repoSplit, stripRefs } from '../src/utils';
 import { VersionObject } from '../src/versionObject';
@@ -77,15 +76,15 @@ describe('Get Versions', () => {
         .build();
 
     test('version from tests/pom.xml to equal 1.0.0', () => {
-        expect(maven_app_version('./__tests__/tests/pom.xml')).toBe('1.0.0');
+        expect(app_version('./__tests__/tests/pom.xml')).toBe('1.0.0');
     });
 
     test('version from tests/build.gradle to equal 1.0.0-SNAPSHOT', () => {
-        expect(gradle_app_version('./__tests__/tests/build.gradle')).toBe('1.0.0-SNAPSHOT');
+        expect(app_version('./__tests__/tests/build.gradle')).toBe('1.0.0-SNAPSHOT');
     });
 
     test('version from tests/gradle.properties to equal 1.0.0-SNAPSHOT', () => {
-        expect(gradle_app_version('./__tests__/tests/gradle.properties')).toBe('1.0.0-SNAPSHOT');
+        expect(app_version('./__tests__/tests/gradle.properties')).toBe('1.0.0-SNAPSHOT');
     });
 
     test(`VersionObject given string v0.0.41-org.flywaydb.flyway-7.6.0.1 should match ${JSON.stringify(

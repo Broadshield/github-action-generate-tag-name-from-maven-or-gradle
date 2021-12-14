@@ -1,44 +1,7 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 8324:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.app_version = void 0;
-const tslib_1 = __nccwpck_require__(4351);
-const core = (0, tslib_1.__importStar)(__nccwpck_require__(2186));
-const fs = (0, tslib_1.__importStar)(__nccwpck_require__(7147));
-const properties = (0, tslib_1.__importStar)(__nccwpck_require__(7735));
-const path = (0, tslib_1.__importStar)(__nccwpck_require__(1017));
-function app_version(path_str) {
-    const ext = path.extname(path_str);
-    if (ext !== null && !(ext.toLowerCase() === '.gradle' || ext.toLowerCase() === '.properties')) {
-        core.debug(`extension of path_str (${path_str}) isn't .gradle (ext is: ${ext})`);
-        return undefined;
-    }
-    if (!fs.existsSync(path_str)) {
-        core.debug(`ERROR: File not found: (${path_str})`);
-        return undefined;
-    }
-    try {
-        const values = properties.of(path_str);
-        const version = values.get('version')?.toString().replace(/'/g, '');
-        return version === undefined ? undefined : `${version}`;
-    }
-    catch (e) {
-        core.error(`ERROR: ${e}`);
-        return undefined;
-    }
-}
-exports.app_version = app_version;
-//# sourceMappingURL=appVersionGradle.js.map
-
-/***/ }),
-
-/***/ 2578:
+/***/ 4719:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -49,29 +12,32 @@ const tslib_1 = __nccwpck_require__(4351);
 const core = (0, tslib_1.__importStar)(__nccwpck_require__(2186));
 const parser = (0, tslib_1.__importStar)(__nccwpck_require__(7448));
 const fs = (0, tslib_1.__importStar)(__nccwpck_require__(7147));
-const path = (0, tslib_1.__importStar)(__nccwpck_require__(1017));
+const properties = (0, tslib_1.__importStar)(__nccwpck_require__(7735));
 function app_version(path_str) {
-    const ext = path.extname(path_str);
-    if (ext !== null && ext.toLowerCase() !== '.xml') {
-        core.debug(`extension of path_str (${path_str}) isn't .xml (ext is: ${ext})`);
-        return undefined;
-    }
     if (!fs.existsSync(path_str)) {
         core.debug(`ERROR: File not found: (${path_str})`);
         return undefined;
     }
     try {
         const xmlData = fs.readFileSync(path_str, 'utf8');
-        const jsonObj = parser.parse(xmlData);
-        return jsonObj.project.version;
+        const xmlObj = parser.parse(xmlData);
+        return xmlObj.project.version;
     }
     catch (err) {
-        core.error(`ERROR: ${err}`);
-        return undefined;
+        try {
+            const values = properties.of(path_str);
+            const version = values.get('version')?.toString().replace(/'/g, '');
+            return version === undefined ? undefined : `${version}`;
+        }
+        catch (e) {
+            core.error(`ERROR: ${err}`);
+            core.error(`ERROR: ${e}`);
+            return undefined;
+        }
     }
 }
 exports.app_version = app_version;
-//# sourceMappingURL=appVersionMaven.js.map
+//# sourceMappingURL=appVersion.js.map
 
 /***/ }),
 
@@ -12406,8 +12372,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const tslib_1 = __nccwpck_require__(4351);
 const core = (0, tslib_1.__importStar)(__nccwpck_require__(2186));
 const github = (0, tslib_1.__importStar)(__nccwpck_require__(5438));
-const appVersionGradle_1 = __nccwpck_require__(8324);
-const appVersionMaven_1 = __nccwpck_require__(2578);
+const appVersion_1 = __nccwpck_require__(4719);
 const utils_1 = __nccwpck_require__(918);
 const versionObject_1 = __nccwpck_require__(9573);
 async function run() {
@@ -12458,7 +12423,8 @@ async function run() {
             core.setFailed('Action failed with error: No repository information available');
             return;
         }
-        const appVersion = (0, utils_1.normalize_version)((0, appVersionMaven_1.app_version)(filepath) || (0, appVersionGradle_1.app_version)(filepath), default_version);
+        const appVersion = (0, utils_1.normalize_version)((0, appVersion_1.app_version)(filepath), default_version);
+        core.debug(`appVersion: ${appVersion}`);
         const prefix = tag_prefix || appVersion;
         let suffix = undefined;
         if (pr) {

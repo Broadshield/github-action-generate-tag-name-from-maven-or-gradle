@@ -1,8 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import { app_version as gradle_app_version } from './appVersionGradle';
-import { app_version as maven_app_version } from './appVersionMaven';
+import { app_version } from './appVersion';
 import { Bump, Repo } from './interfaces';
 import {
     basename,
@@ -78,10 +77,8 @@ async function run(): Promise<void> {
             return;
         }
 
-        const appVersion = normalize_version(
-            maven_app_version(filepath) || gradle_app_version(filepath),
-            default_version,
-        );
+        const appVersion = normalize_version(app_version(filepath), default_version);
+        core.debug(`appVersion: ${appVersion}`);
         const prefix = tag_prefix || appVersion;
         let suffix: string | null | undefined = undefined;
 
