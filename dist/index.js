@@ -221,7 +221,7 @@ async function getLatestTag(owner, repo, tagPrefix, fromReleases, sortTags, igno
         for (const tag of allTagsArray) {
             if (tag.match(search_re)) {
                 if (!sortTags) {
-                    core.debug(`getLatestTag returns ${JSON.stringify(tag)}`);
+                    core.debug(`getLatestTag returns ${tag}`);
                     try {
                         tagsList.push(new versionObject_1.VersionObject(tag));
                     }
@@ -248,10 +248,10 @@ async function getLatestTag(owner, repo, tagPrefix, fromReleases, sortTags, igno
     }
     const usedFin = process.memoryUsage().heapUsed / 1024 / 1024;
     core.debug(`(${Math.round(usedFin * 100) / 100} MB) getLatestTag found ${tags.length} tags starting with prefix ${tagPrefix}`);
-    core.debug(`getLatestTag found these tags: ${JSON.stringify(tags)}`);
+    core.debug(`getLatestTag found these tags: ${tags.map(t => t.toString())}`);
     tags.sort(cmpTags);
     const [latestTag] = tags.slice(-1);
-    core.debug(`getLatestTag returns ${latestTag}`);
+    core.debug(`getLatestTag returns ${latestTag.toString()}`);
     return latestTag;
 }
 exports.getLatestTag = getLatestTag;

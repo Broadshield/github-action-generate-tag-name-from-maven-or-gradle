@@ -170,7 +170,7 @@ export async function getLatestTag(
         for (const tag of allTagsArray) {
             if (tag.match(search_re)) {
                 if (!sortTags) {
-                    core.debug(`getLatestTag returns ${JSON.stringify(tag)}`);
+                    core.debug(`getLatestTag returns ${tag}`);
                     // Assume that the API returns the most recent tag(s) first.
                     try {
                         tagsList.push(new VersionObject(tag));
@@ -204,11 +204,11 @@ export async function getLatestTag(
             tags.length
         } tags starting with prefix ${tagPrefix}`,
     );
-    core.debug(`getLatestTag found these tags: ${JSON.stringify(tags)}`);
+    core.debug(`getLatestTag found these tags: ${tags.map(t => t.toString())}`);
 
     tags.sort(cmpTags);
     const [latestTag] = tags.slice(-1);
-    core.debug(`getLatestTag returns ${latestTag}`);
+    core.debug(`getLatestTag returns ${latestTag.toString()}`);
     return latestTag;
 }
 
