@@ -3,19 +3,17 @@ import * as github from '@actions/github';
 
 import { app_version as gradle_app_version } from './appVersionGradle';
 import { app_version as maven_app_version } from './appVersionMaven';
-import { Repo } from './interfaces';
+import { Bump, Repo } from './interfaces';
 import {
     basename,
     bumper,
     getLatestTag,
     getVersionPrefixes,
-    getVersionStringPrefix,
     normalize_version,
-    parseVersionString,
     repoSplit,
     stripRefs,
-    versionObjToString,
 } from './utils';
+import { VersionObject } from './versionObject';
 
 async function run(): Promise<void> {
     try {
@@ -33,7 +31,7 @@ async function run(): Promise<void> {
         const releases_only =
             core.getInput('releases_only', { required: false })?.trim() === 'true';
         const sort_tags = core.getInput('sort_tags', { required: false })?.trim() === 'true';
-        const bump = core.getInput('bump', { required: false })?.trim();
+        const bump: Bump = core.getInput('bump', { required: false })?.trim().toLowerCase() as Bump;
         const release_branch = core.getInput('release_branch', { required: true })?.trim();
         /*  TODO: Add v prepending */
         const prepend_v = core.getInput('prepend_v', { required: false }) === 'true';
@@ -62,7 +60,7 @@ async function run(): Promise<void> {
         const baseBranch: string = branch || ref;
         const br = stripRefs(baseBranch);
         const is_release_branch = br?.startsWith(release_branch) || false;
-        const bump_item = !is_release_branch ? 'build' : bump;
+        const bump_item: Bump = !is_release_branch ? 'build' : bump;
         const repository =
             core.getInput('repository', { required: false }) ||
             process.env.GITHUB_REPOSITORY ||
@@ -92,13 +90,8 @@ async function run(): Promise<void> {
         } else if (br) {
             suffix = basename(br)?.replace(/\./g, '-');
         }
-
-        const searchPrefix = getVersionStringPrefix(
-            parseVersionString(prefix),
-            bump_item,
-            suffix,
-            is_release_branch,
-        );
+        const versionObj = new VersionObject(prefix);
+        const searchPrefix = versionObj.prefixString(bump_item, suffix, is_release_branch);
 
         const latestGitTag = await getLatestTag(
             repos.owner,
@@ -120,7 +113,7 @@ async function run(): Promise<void> {
         core.setOutput('prefix', prefix);
         core.setOutput('suffix', suffix);
         core.setOutput('bump_item', bump_item);
-        core.setOutput('latest_git_tag', versionObjToString(latestGitTag));
+        core.setOutput('latest_git_tag', latestGitTag.toString());
         core.setOutput('is_release_branch', is_release_branch);
         core.info(`Tag Name: ${tag_name}`);
         core.info(`App Version: ${appVersion}`);

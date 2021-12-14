@@ -4,14 +4,8 @@ import * as github from '@actions/github';
 import { app_version as gradle_app_version } from '../src/appVersionGradle';
 import { app_version as maven_app_version } from '../src/appVersionMaven';
 import { Repo } from '../src/interfaces';
-import {
-    basename,
-    normalize_version,
-    parseVersionString,
-    repoSplit,
-    stripRefs,
-    versionObjToString,
-} from '../src/utils';
+import { basename, normalize_version, repoSplit, stripRefs } from '../src/utils';
+import { VersionObject } from '../src/versionObject';
 import { VersionObjectBuilder } from '../src/versionObjectBuilder';
 
 const inputs = {} as any;
@@ -62,6 +56,7 @@ describe('Get Versions', () => {
         .minor_prefix('.')
         .buildNum(24)
         .build();
+
     const version12 = new VersionObjectBuilder()
         .major(0)
         .minor(0)
@@ -69,6 +64,18 @@ describe('Get Versions', () => {
         .patch_prefix('.')
         .minor_prefix('.')
         .build();
+
+    const version13 = new VersionObjectBuilder()
+        .major(0)
+        .minor(0)
+        .patch(41)
+        .with_v('v')
+        .patch_prefix('.')
+        .minor_prefix('.')
+        .label_prefix('-')
+        .label('org.flywaydb.flyway-7.6.0.1')
+        .build();
+
     test('version from tests/pom.xml to equal 1.0.0', () => {
         expect(maven_app_version('./__tests__/tests/pom.xml')).toBe('1.0.0');
     });
@@ -81,37 +88,55 @@ describe('Get Versions', () => {
         expect(gradle_app_version('./__tests__/tests/gradle.properties')).toBe('1.0.0-SNAPSHOT');
     });
 
-    test(`parseVersionString given string 2.3.1 should match ${JSON.stringify(version1)}`, () => {
-        expect(parseVersionString('2.3.1')).toStrictEqual(version1);
-    });
-    test(`parseVersionString given string 0.0.4 should match ${JSON.stringify(version12)}`, () => {
-        expect(parseVersionString('0.0.4')).toStrictEqual(version12);
-    });
-    test(`parseVersionString given string v2.3.1 should match ${JSON.stringify(version2)}`, () => {
-        expect(parseVersionString('v2.3.1')).toStrictEqual(version2);
-    });
-    test(`parseVersionString given string v2.3.1-PR1234+1 should match ${JSON.stringify(
-        version3,
+    test(`VersionObject given string v0.0.41-org.flywaydb.flyway-7.6.0.1 should match ${JSON.stringify(
+        version13,
     )}`, () => {
-        expect(parseVersionString('v2.3.1-PR1234+1')).toStrictEqual(version3);
+        expect(new VersionObject('v0.0.41-org.flywaydb.flyway-7.6.0.1').data).toStrictEqual(
+            version13.data,
+        );
     });
-
-    test(`parseVersionString given string v2.3.1-PR1234+45 should match ${JSON.stringify(
-        version4,
+    test(`VersionObject given string v0.0.41-org.flywaydb.flyway-7.6.0.1 should return the same`, () => {
+        expect(new VersionObject('v0.0.41-org.flywaydb.flyway-7.6.0.1').toString()).toStrictEqual(
+            'v0.0.41-org.flywaydb.flyway-7.6.0.1',
+        );
+    });
+    test(`new VersionObject given string 2.3.1 should match ${JSON.stringify(
+        version1.data,
     )}`, () => {
-        expect(parseVersionString('v2.3.1-PR1234+45')).toStrictEqual(version4);
+        expect(new VersionObject('2.3.1').data).toStrictEqual(version1.data);
+    });
+    test(`new VersionObject given string 0.0.4 should match ${JSON.stringify(
+        version12.data,
+    )}`, () => {
+        expect(new VersionObject('0.0.4').data).toStrictEqual(version12.data);
+    });
+    test(`new VersionObject given string v2.3.1 should match ${JSON.stringify(
+        version2.data,
+    )}`, () => {
+        expect(new VersionObject('v2.3.1').data).toStrictEqual(version2.data);
+    });
+    test(`new VersionObject given string v2.3.1-PR1234+1 should match ${JSON.stringify(
+        version3.data,
+    )}`, () => {
+        expect(new VersionObject('v2.3.1-PR1234+1').data).toStrictEqual(version3.data);
     });
 
-    test(`versionObjToString given string ${JSON.stringify(
+    test(`new VersionObject given string v2.3.1-PR1234+45 should match ${JSON.stringify(
+        version4.data,
+    )}`, () => {
+        expect(new VersionObject('v2.3.1-PR1234+45').data).toStrictEqual(version4.data);
+    });
+
+    test(`versionObj.toString() given string ${JSON.stringify(
         version4,
-    )} should match v2.3.1-PR1234+45}`, () => {
-        expect(versionObjToString(version4)).toStrictEqual('v2.3.1-PR1234+45');
+    )} should match v2.3.1-PR1234+45`, () => {
+        expect(version4.toString()).toStrictEqual('v2.3.1-PR1234+45');
     });
 
-    test(`versionObjToString given string ${JSON.stringify(
+    test(`versionObj.toString() given string ${JSON.stringify(
         version5,
-    )} should match v2.22.0+24}`, () => {
-        expect(versionObjToString(version5)).toStrictEqual('v2.22.0+24');
+    )} should match v2.22.0+24`, () => {
+        expect(version5.toString()).toStrictEqual('v2.22.0+24');
     });
 });
 

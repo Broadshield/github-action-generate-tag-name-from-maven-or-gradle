@@ -81,19 +81,13 @@ exports.app_version = app_version;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getKeyValue = void 0;
-const getKeyValue = (key) => (obj) => {
-    if (typeof obj[key] == 'string') {
-        return obj[key];
-    }
-    else if (typeof obj[key] == 'number') {
-        return obj[key];
-    }
-    else {
-        return undefined;
-    }
+exports.BumpType = void 0;
+exports.BumpType = {
+    Patch: 'patch',
+    Minor: 'minor',
+    Major: 'major',
+    Build: 'build',
 };
-exports.getKeyValue = getKeyValue;
 //# sourceMappingURL=interfaces.js.map
 
 /***/ }),
@@ -104,13 +98,10 @@ exports.getKeyValue = getKeyValue;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.cmpTags = exports.getLatestTag = exports.getVersionPrefixes = exports.getVersionStringPrefix = exports.parseVersionString = exports.bumper = exports.versionObjToString = exports.versionObjToArray = exports.repoSplit = exports.normalize_version = exports.stripRefs = exports.basename = exports.version_regex = void 0;
+exports.cmpTags = exports.getLatestTag = exports.getVersionPrefixes = exports.bumper = exports.repoSplit = exports.normalize_version = exports.stripRefs = exports.basename = void 0;
 const tslib_1 = __nccwpck_require__(4351);
 const core = (0, tslib_1.__importStar)(__nccwpck_require__(2186));
-const interfaces_1 = __nccwpck_require__(6734);
-const LABEL_PREFIX = core.getInput('label_delimiter', { required: false }) || '-';
-const BUILD_PREFIX = core.getInput('build_delimiter', { required: false }) || '+';
-exports.version_regex = /^(?<v>v)?(?<version>(?<major>[\d]+)(?<minor_prefix>\.)?(?<minor>[\d]+)?(?<patch_prefix>\.)?(?<patch>[\d]+)?)((?<legacy_build_prefix>_)(?<legacy_build_number>[\d]+))?((?<label_prefix>[-_])(?<label>[-_/0-9a-zA-Z]+))?([.+](?<build>[\d]+))?$/;
+const versionObject_1 = __nccwpck_require__(9573);
 function basename(path) {
     if (!path)
         return null;
@@ -166,131 +157,31 @@ function repoSplit(inputRepo, context) {
     throw Error("repoSplit requires a GITHUB_REPOSITORY environment variable like 'owner/repo'");
 }
 exports.repoSplit = repoSplit;
-function versionObjToArray(vObj) {
-    const vArray = [];
-    vArray.push(undfEmpty(vObj.with_v));
-    vArray.push(undfEmpty(vObj.major));
-    vArray.push(undfEmpty(vObj.minor_prefix));
-    vArray.push(undfEmpty(vObj.minor));
-    vArray.push(undfEmpty(vObj.patch_prefix));
-    vArray.push(undfEmpty(vObj.patch));
-    vArray.push(undfEmpty(vObj.legacy_build_prefix));
-    vArray.push(undfEmpty(vObj.legacy_build_number));
-    vArray.push(undfEmpty(vObj.label_prefix));
-    vArray.push(undfEmpty(vObj.label));
-    vArray.push(vObj.build === undefined ? BUILD_PREFIX : '');
-    vArray.push(undfEmpty(vObj.build));
-    core.debug(`versionObjToArray passed ${JSON.stringify(vObj)} returns ${vArray.join('')}`);
-    return vArray;
-}
-exports.versionObjToArray = versionObjToArray;
-function undfEmpty(vStr) {
-    if (vStr === undefined) {
-        return '';
-    }
-    return vStr.toString();
-}
-function versionObjToString(vObj) {
-    const vStr = `${undfEmpty(vObj.with_v)}${vObj.major}${undfEmpty(vObj.minor_prefix)}${undfEmpty(vObj.minor === undefined ? 0 : vObj.minor)}${undfEmpty(vObj.patch_prefix)}${vObj.patch === undefined ? 0 : vObj.patch}${undfEmpty(vObj.legacy_build_prefix)}${undfEmpty(vObj.legacy_build_number)}${undfEmpty(vObj.label_prefix)}${undfEmpty(vObj.label)}${vObj.build ? BUILD_PREFIX : ''}${undfEmpty(vObj.build)}`;
-    core.debug(`versionObjToString passed ${JSON.stringify(vObj)} returns ${vStr}`);
-    return vStr;
-}
-exports.versionObjToString = versionObjToString;
 function bumper(versionObj, bumping, is_release_branch) {
-    const currentVersion = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`;
-    const label = versionObj.label || 'alpha';
-    const v = versionObj.with_v || '';
-    core.debug(`bumper passed version object ${versionObjToString(versionObj)} and bumping ${bumping}}`);
-    core.debug(`bumper-- currentVersion:${currentVersion},label:${label},v: ${v}`);
-    let result;
-    if (bumping === 'build') {
-        const buildnumber = (versionObj.build || 0) + 1;
-        result = `${v}${currentVersion}${is_release_branch ? '' : LABEL_PREFIX}${is_release_branch ? '' : label}${BUILD_PREFIX}${buildnumber}`;
-    }
-    else if (['major', 'minor', 'patch'].includes(bumping)) {
-        if (bumping === 'major') {
-            versionObj.major = (versionObj.major || 0) + 1;
-            versionObj.minor = 0;
-            versionObj.patch = 0;
-        }
-        else if (bumping === 'minor') {
-            versionObj.minor = (versionObj.minor || 0) + 1;
-            versionObj.patch = 0;
-        }
-        else if (bumping === 'patch') {
-            versionObj.patch = (versionObj.patch || 0) + 1;
-        }
-        result = `${v}${versionObj.major}.${versionObj.minor}.${versionObj.patch}`;
+    const newVersion = versionObj.bump(bumping);
+    newVersion.data.label = versionObj.label || 'alpha';
+    core.debug(`bumper() passed version object ${versionObj.toString()} and bumping ${bumping}}`);
+    if (!is_release_branch) {
+        core.debug(`bumper() not in release branch will return ${versionObj.toString()}`);
+        return newVersion.toString();
     }
     else {
-        throw Error(`Bump value must be one of: build, major, minor, or patch.Instead '${bumping}' was given`);
+        core.debug(`bumper() in release branch will return ${versionObj.releaseString()}`);
+        return newVersion.releaseString();
     }
-    core.debug(`bumper returns: ${result}`);
-    return result;
 }
 exports.bumper = bumper;
-function parseVersionString(str) {
-    const vObj = { major: 0, minor: 0, patch: 0 };
-    const search_re = exports.version_regex;
-    const matcher = str?.match(search_re);
-    core.debug(`parseVersionString passed ${str}`);
-    if (matcher === null || matcher.groups === undefined) {
-        throw new Error("parseVersionString: Version can't be found in string");
-    }
-    const groups = matcher.groups;
-    vObj.with_v = groups.v || undefined;
-    vObj.major = parseInt(groups.major) || 0;
-    vObj.minor_prefix = groups.minor_prefix || undefined;
-    vObj.minor = parseInt(groups.minor) || 0;
-    vObj.patch_prefix = groups.patch_prefix || undefined;
-    vObj.patch = parseInt(groups.patch) || 0;
-    vObj.legacy_build_prefix = groups.legacy_build_prefix || undefined;
-    vObj.legacy_build_number = parseInt(groups.legacy_build_number) || undefined;
-    vObj.label_prefix = groups.label_prefix || undefined;
-    vObj.label = groups.label || undefined;
-    vObj.build = parseInt(groups.build) || undefined;
-    core.debug(`parseVersionString returns ${JSON.stringify(vObj)}`);
-    return vObj;
-}
-exports.parseVersionString = parseVersionString;
-function getVersionStringPrefix(versionObj, bumping, suffix, is_release_branch) {
-    let result;
-    if (['major', 'minor', 'patch'].includes(bumping)) {
-        if (bumping === 'major') {
-            result = '';
-        }
-        else if (bumping === 'minor') {
-            result = `${versionObj.major}.`;
-        }
-        else {
-            result = `${versionObj.major}.${versionObj.minor}`;
-        }
-    }
-    else {
-        result = `${versionObj.major}.${versionObj.minor}.${versionObj.patch}`;
-        if (!is_release_branch && (versionObj.label || suffix)) {
-            result = `${result}${LABEL_PREFIX}${versionObj.label || suffix}`;
-        }
-    }
-    if (versionObj.with_v) {
-        result = `${versionObj.with_v}${result}`;
-    }
-    const used = process.memoryUsage().heapUsed / 1024 / 1024;
-    core.debug(`(${Math.round(used * 100) / 100} MB) getVersionStringPrefix passed versionObj ${JSON.stringify(versionObj)} and bumping ${bumping} and returns ${result}`);
-    return result;
-}
-exports.getVersionStringPrefix = getVersionStringPrefix;
 function getVersionPrefixes(str) {
     const search_re = /^([Vv])?(?<version>.*)/;
     const matcher = str?.match(search_re);
     const used = process.memoryUsage().heapUsed / 1024 / 1024;
     core.debug(`(${Math.round(used * 100) / 100} MB) getVersionPrefixes passed ${str}`);
-    if (matcher === null || matcher.groups === undefined || matcher.groups.version === undefined) {
+    if (!matcher || !matcher.groups || !matcher.groups.version) {
         throw new Error("getVersionPrefixes: Version can't be found in string");
     }
     const groups = matcher.groups;
     const version = groups.version;
-    return { without_v: version, with_v: `v${version} ` };
+    return { without_v: version, with_v: `v${version}` };
 }
 exports.getVersionPrefixes = getVersionPrefixes;
 function escapeRegExp(str) {
@@ -334,12 +225,20 @@ async function getLatestTag(owner, repo, tagPrefix, fromReleases, sortTags, igno
             if (tag.match(search_re)) {
                 if (!sortTags) {
                     core.debug(`getLatestTag returns ${JSON.stringify(tag)}`);
-                    tagsList.push(parseVersionString(tag));
+                    try {
+                        tagsList.push(new versionObject_1.VersionObject(tag));
+                    }
+                    catch (err) {
+                    }
                     return tagsList;
                 }
                 const used = process.memoryUsage().heapUsed / 1024 / 1024;
                 core.debug(`(${Math.round(used * 100) / 100} MB) getMatchedTags adding tag ${tag}`);
-                tagsList.push(parseVersionString(tag));
+                try {
+                    tagsList.push(new versionObject_1.VersionObject(tag));
+                }
+                catch (err) {
+                }
             }
         }
         return tagsList;
@@ -348,7 +247,7 @@ async function getLatestTag(owner, repo, tagPrefix, fromReleases, sortTags, igno
     const tags = getMatchedTags(allTags);
     if (tags.length === 0) {
         core.debug(`getLatestTag found 0 tags starting with prefix ${tagPrefix}`);
-        return parseVersionString(tagPrefix);
+        return new versionObject_1.VersionObject(tagPrefix);
     }
     const usedFin = process.memoryUsage().heapUsed / 1024 / 1024;
     core.debug(`(${Math.round(usedFin * 100) / 100} MB) getLatestTag found ${tags.length} tags starting with prefix ${tagPrefix}`);
@@ -383,13 +282,210 @@ function cmpTags(a, b) {
     let result = 0;
     while (result === 0 && i < order.length) {
         const k = order[i];
-        result = cmp((0, interfaces_1.getKeyValue)(k)(a), (0, interfaces_1.getKeyValue)(k)(b));
+        result = cmp(a.data[k], b.data[k]);
         i++;
     }
     return result;
 }
 exports.cmpTags = cmpTags;
 //# sourceMappingURL=utils.js.map
+
+/***/ }),
+
+/***/ 9573:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.VersionObject = exports.BUILD_PREFIX = exports.LABEL_PREFIX = void 0;
+const tslib_1 = __nccwpck_require__(4351);
+const core = (0, tslib_1.__importStar)(__nccwpck_require__(2186));
+const interfaces_1 = __nccwpck_require__(6734);
+exports.LABEL_PREFIX = core.getInput('label_delimiter', { required: false }) || '-';
+exports.BUILD_PREFIX = core.getInput('build_delimiter', { required: false }) || '+';
+class VersionObject {
+    constructor(v) {
+        this.version_regex = /^(?<with_v>v)?(?<version>(?<major>[\d]+)(?<minor_prefix>\.)?(?<minor>[\d]+)?(?<patch_prefix>\.)?(?<patch>[\d]+)?)((?<legacy_build_prefix>_)(?<legacy_build_number>[\d]+))?/;
+        this.build_regex = /\+(?<build>[\d]+$)$/;
+        this.label_regex = /(?<label_prefix>[-_])(?<label>.*)/;
+        this.data = {};
+        if (v) {
+            if (typeof v === 'string') {
+                this.rawVersion = v;
+                this.parse();
+            }
+            else {
+                for (const key in v) {
+                    this.data[key] = v.data[key];
+                }
+                this.rawVersion = v.rawVersion;
+                this.rawBuild = v.rawBuild;
+                this.rawLabel = v.rawLabel;
+            }
+        }
+    }
+    get with_v() {
+        return this.data.with_v;
+    }
+    get version() {
+        return this.data.version;
+    }
+    get major() {
+        return this.data.major;
+    }
+    get minor() {
+        return this.data.minor;
+    }
+    get patch() {
+        return this.data.patch;
+    }
+    get legacy_build_number() {
+        return this.data.legacy_build_number;
+    }
+    get build() {
+        return this.data.build;
+    }
+    get label() {
+        return this.data.label;
+    }
+    parse() {
+        const matcher = this.rawVersion?.match(this.version_regex);
+        core.debug(`parse(): passed ${this.rawVersion}`);
+        if (!matcher || matcher.groups === undefined) {
+            core.error(`parse(): Version can't be found in string: ${this.rawVersion}`);
+            throw Error(`Version can't be found in string: ${this.rawVersion}`);
+        }
+        for (const key in matcher.groups) {
+            if (['major', 'minor', 'patch'].includes(key)) {
+                this.data[key] = parseInt(matcher.groups[key]) || 0;
+            }
+            else if (['legacy_build_number'].includes(key)) {
+                this.data[key] = parseInt(matcher.groups[key]) || undefined;
+            }
+            else {
+                this.data[key] = matcher.groups[key] || undefined;
+            }
+        }
+        this.rawBuild = this.rawVersion?.substr(matcher[0].length);
+        if (this.rawBuild) {
+            const matcher1 = this.rawBuild.match(this.build_regex);
+            let len1 = 0;
+            if (matcher1 && matcher1.groups) {
+                len1 = matcher1[0].length;
+                for (const key in matcher1.groups) {
+                    if (['build'].includes(key)) {
+                        this.data[key] = parseInt(matcher1.groups[key]) || undefined;
+                    }
+                    else {
+                        this.data[key] = matcher1.groups[key] || undefined;
+                    }
+                }
+            }
+            this.rawLabel = this.rawBuild.substr(0, this.rawBuild.length - len1);
+            if (this.rawLabel) {
+                const matcher2 = this.rawLabel.match(this.label_regex);
+                if (matcher2 && matcher2.groups) {
+                    for (const key in matcher2.groups) {
+                        this.data[key] = matcher2.groups[key] || undefined;
+                    }
+                }
+            }
+        }
+        core.debug(`parse() created ${JSON.stringify(this.data)}`);
+    }
+    toArray() {
+        const vArray = [];
+        vArray.push(this.undfEmpty(this.data.with_v));
+        vArray.push(this.undfEmpty(this.data.major));
+        vArray.push(this.undfEmpty(this.data.minor_prefix));
+        vArray.push(this.undfEmpty(this.data.minor));
+        vArray.push(this.undfEmpty(this.data.patch_prefix));
+        vArray.push(this.undfEmpty(this.data.patch));
+        vArray.push(this.undfEmpty(this.data.legacy_build_prefix));
+        vArray.push(this.undfEmpty(this.data.legacy_build_number));
+        vArray.push(this.undfEmpty(this.data.label_prefix));
+        vArray.push(this.undfEmpty(this.data.label));
+        vArray.push(this.data.build === undefined ? exports.BUILD_PREFIX : '');
+        vArray.push(this.undfEmpty(this.data.build));
+        core.debug(`ToArray() passed ${JSON.stringify(this.data)} returns ${vArray.join('')}`);
+        return vArray;
+    }
+    undfEmpty(vStr) {
+        if (vStr === undefined) {
+            return '';
+        }
+        return vStr.toString();
+    }
+    bump(bumpType) {
+        const v = new VersionObject(this);
+        switch (bumpType) {
+            case interfaces_1.BumpType.Major:
+                v.data.major = (v.data.major || 0) + 1;
+                v.data.minor = 0;
+                v.data.patch = 0;
+                break;
+            case interfaces_1.BumpType.Minor:
+                v.data.minor = (v.data.minor || 0) + 1;
+                v.data.patch = 0;
+                break;
+            case interfaces_1.BumpType.Patch:
+                v.data.patch = (v.data.patch || 0) + 1;
+                break;
+            case interfaces_1.BumpType.Build:
+                v.data.build = (v.data.build || 0) + 1;
+                break;
+            default:
+                throw Error(`BumpType ${bumpType} not supported`);
+        }
+        return v;
+    }
+    versionString() {
+        const vStr = `${this.data.major}${this.undfEmpty(this.data.minor_prefix)}${this.undfEmpty(this.data.minor === undefined ? 0 : this.data.minor)}${this.undfEmpty(this.data.patch_prefix)}${this.data.patch === undefined ? 0 : this.data.patch}`;
+        core.debug(`versionString() passed ${JSON.stringify(this.data)} returns ${vStr}`);
+        return vStr;
+    }
+    releaseString() {
+        const vStr = `${this.undfEmpty(this.data.with_v)}${this.versionString()}`;
+        core.debug(`releaseString() passed ${JSON.stringify(this.data)} returns ${vStr}`);
+        return vStr;
+    }
+    toString() {
+        const vStr = `${this.releaseString()}${this.undfEmpty(this.data.legacy_build_prefix)}${this.undfEmpty(this.data.legacy_build_number)}${this.undfEmpty(this.data.label_prefix)}${this.undfEmpty(this.data.label)}${this.undfEmpty(this.data.build ? exports.BUILD_PREFIX : '')}${this.undfEmpty(this.data.build)}`;
+        core.debug(`toString() passed ${JSON.stringify(this.data)} returns ${vStr}`);
+        return vStr;
+    }
+    prefixString(bumping, suffix, is_release_branch) {
+        let result;
+        switch (bumping) {
+            case interfaces_1.BumpType.Major:
+                result = '';
+                break;
+            case interfaces_1.BumpType.Minor:
+                result = `${this.major}.`;
+                break;
+            case interfaces_1.BumpType.Patch:
+                result = `${this.major}.${this.minor}`;
+                break;
+            case interfaces_1.BumpType.Build:
+                result = `${this.major}.${this.minor}.${this.patch}`;
+                if (!is_release_branch && (this.label || suffix)) {
+                    result = `${result}${exports.LABEL_PREFIX}${this.label || suffix}`;
+                }
+                break;
+            default:
+                throw Error(`BumpType ${bumping} not supported`);
+        }
+        if (this.with_v) {
+            result = `${this.with_v}${result}`;
+        }
+        const used = process.memoryUsage().heapUsed / 1024 / 1024;
+        core.debug(`(${Math.round(used * 100) / 100} MB) prefixString(): passed ${JSON.stringify(this)} and bumping ${bumping} and returns ${result}`);
+        return result;
+    }
+}
+exports.VersionObject = VersionObject;
+//# sourceMappingURL=versionObject.js.map
 
 /***/ }),
 
@@ -12303,6 +12399,7 @@ const github = (0, tslib_1.__importStar)(__nccwpck_require__(5438));
 const appVersionGradle_1 = __nccwpck_require__(8324);
 const appVersionMaven_1 = __nccwpck_require__(2578);
 const utils_1 = __nccwpck_require__(918);
+const versionObject_1 = __nccwpck_require__(9573);
 async function run() {
     try {
         const { context } = github;
@@ -12315,7 +12412,7 @@ async function run() {
         const tag_prefix = core.getInput('tag_prefix', { required: false })?.trim();
         const releases_only = core.getInput('releases_only', { required: false })?.trim() === 'true';
         const sort_tags = core.getInput('sort_tags', { required: false })?.trim() === 'true';
-        const bump = core.getInput('bump', { required: false })?.trim();
+        const bump = core.getInput('bump', { required: false })?.trim().toLowerCase();
         const release_branch = core.getInput('release_branch', { required: true })?.trim();
         const prepend_v = core.getInput('prepend_v', { required: false }) === 'true';
         const ignore_v_when_searching = core.getInput('ignore_v_when_searching', {
@@ -12360,7 +12457,8 @@ async function run() {
         else if (br) {
             suffix = (0, utils_1.basename)(br)?.replace(/\./g, '-');
         }
-        const searchPrefix = (0, utils_1.getVersionStringPrefix)((0, utils_1.parseVersionString)(prefix), bump_item, suffix, is_release_branch);
+        const versionObj = new versionObject_1.VersionObject(prefix);
+        const searchPrefix = versionObj.prefixString(bump_item, suffix, is_release_branch);
         const latestGitTag = await (0, utils_1.getLatestTag)(repos.owner, repos.repo, searchPrefix, releases_only, sortTags, ignore_v_when_searching, octokit);
         const tag_name = (0, utils_1.bumper)(latestGitTag, bump_item, is_release_branch);
         const tagOptions = (0, utils_1.getVersionPrefixes)(tag_name);
@@ -12372,7 +12470,7 @@ async function run() {
         core.setOutput('prefix', prefix);
         core.setOutput('suffix', suffix);
         core.setOutput('bump_item', bump_item);
-        core.setOutput('latest_git_tag', (0, utils_1.versionObjToString)(latestGitTag));
+        core.setOutput('latest_git_tag', latestGitTag.toString());
         core.setOutput('is_release_branch', is_release_branch);
         core.info(`Tag Name: ${tag_name}`);
         core.info(`App Version: ${appVersion}`);

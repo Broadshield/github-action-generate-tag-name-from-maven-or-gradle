@@ -3,38 +3,13 @@ export interface Repo {
     repo: string;
 }
 
-export interface VersionPrefixes {
-    without_v: string;
-    with_v: string;
-}
-export type VersionObjectRecordValueType = string | number | undefined;
-
-// v1.1
-// v1.7.6
-export interface VersionObject {
-    with_v?: string;
-    major: number;
-    minor_prefix?: string;
-    minor?: number;
-    patch_prefix?: string;
-    patch?: number;
-    legacy_build_prefix?: string;
-    legacy_build_number?: number;
-    label_prefix?: string;
-    label?: string;
-    build?: number;
-}
-export const getKeyValue =
-    <U extends keyof T, T extends VersionObject>(key: U) =>
-    (obj: T): string | number | undefined => {
-        if (typeof obj[key] == 'string') {
-            return (<unknown>obj[key]) as string;
-        } else if (typeof obj[key] == 'number') {
-            return (<unknown>obj[key]) as number;
-        } else {
-            return undefined;
-        }
-    };
+export const BumpType = {
+    Patch: 'patch',
+    Minor: 'minor',
+    Major: 'major',
+    Build: 'build',
+} as const;
+export type Bump = typeof BumpType[keyof typeof BumpType];
 
 // // eslint-disable-next-line no-shadow
 // export enum Ordering {
