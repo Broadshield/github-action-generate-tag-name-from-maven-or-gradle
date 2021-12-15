@@ -26,7 +26,18 @@ function app_version(path_str) {
     catch (err) {
         try {
             core.debug(`Reading file as properties: (${path_str})`);
-            return properties.of(path_str).get('version')?.toString().replace(/['"]/g, '');
+            const pfile = properties.of(path_str);
+            if (pfile.get('version')) {
+                const versionRaw = pfile.get('version');
+                core.debug(`Found property: (${versionRaw})`);
+                const version = versionRaw.replace(/['"]/g, '');
+                core.debug(`Version: (${version})`);
+                return version;
+            }
+            else {
+                core.debug(`ERROR: Property 'version' not found in: (${path_str})`);
+                return undefined;
+            }
         }
         catch (e) {
             core.error(`ERROR: ${err}`);
