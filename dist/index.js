@@ -19,15 +19,14 @@ function app_version(path_str) {
         return undefined;
     }
     try {
+        core.debug(`Reading file as xml: (${path_str})`);
         const xmlData = fs.readFileSync(path_str, 'utf8');
-        const xmlObj = parser.parse(xmlData);
-        return xmlObj.project.version;
+        return parser.parse(xmlData).project.version;
     }
     catch (err) {
         try {
-            const values = properties.of(path_str);
-            const version = values.get('version')?.toString().replace(/'/g, '');
-            return version === undefined ? undefined : `${version}`;
+            core.debug(`Reading file as properties: (${path_str})`);
+            return properties.of(path_str).get('version')?.toString().replace(/['"]/g, '');
         }
         catch (e) {
             core.error(`ERROR: ${err}`);
