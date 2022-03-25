@@ -9,8 +9,7 @@
     "eslint.codeAction.showDocumentation": {
       "enable": true
     },
-    "prettier.configPath": ".prettierrc.json",
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    
     "editor.formatOnSave": true,
     "eslint.alwaysShowStatus": true,
     "eslint.validate": ["javascript", "typescript"],
@@ -21,7 +20,6 @@
       "source.fixAll.eslint": true
     },
     "[typescript]": {
-      "editor.defaultFormatter": "dbaeumer.vscode-eslint",
       "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
       }

@@ -2,10 +2,10 @@ name: 🧪 Push - Print Version
 'on':
   push:
     branches:
-      - "main"
+      - 'main'
   pull_request:
     branches:
-      - "main"
+      - 'main'
 
 'jobs':
   show_version:

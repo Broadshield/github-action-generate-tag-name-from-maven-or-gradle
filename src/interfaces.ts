@@ -1,13 +1,13 @@
 export interface Repo {
-    owner: string;
-    repo: string;
+  owner: string;
+  repo: string;
 }
 
 export const BumpType = {
-    Patch: 'patch',
-    Minor: 'minor',
-    Major: 'major',
-    Build: 'build',
+  Patch: 'patch',
+  Minor: 'minor',
+  Major: 'major',
+  Build: 'build',
 } as const;
 export type Bump = typeof BumpType[keyof typeof BumpType];
 

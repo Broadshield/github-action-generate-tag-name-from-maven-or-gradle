@@ -3,3 +3,4 @@ lib/
 node_modules/
 jest.config.ts
 .eslintrc.js
+__tests__/
