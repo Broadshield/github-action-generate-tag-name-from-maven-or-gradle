@@ -14,7 +14,7 @@ Generates a Git tag name for Pull Releases and Branches based on the application
 <!-- start usage -->
 
 ```yaml
-- uses: Broadshield/github-action-generate-tag-name-from-maven-or-gradle@v1.0.3
+- uses: Broadshield/github-action-generate-tag-name-from-maven-or-gradle@v1.0.4
   with:
     # The Github Token to authenticate with
     github_token: ''
