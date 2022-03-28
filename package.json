@@ -1,6 +1,6 @@
 {
   "name": "@Broadshield/github-action-generate-tag-name-from-maven-or-gradle",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Generates a Git tag name for Pull Releases and Branches based on the application version in pom.xml or gradle.settings files",
   "main": "dist/index.js",
   "repository": {
@@ -73,10 +73,10 @@
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "package": "rimraf lib dist;esbuild src/main.ts --bundle --sourcemap --platform=node --outfile=dist/index.cjs --target=node16 --format=cjs",
     "build-docker": "yarn run build-debug;docker build -t github-action-generate-tag-name-from-maven-or-gradle .",
-    "release": "yarn run lint:fix && yarn run typecheck && yarn run package",
+    "release": "yarn run lint:fix && yarn run typecheck && yarn run package && git add dist",
     "all": "yarn run format:fix && yarn run lint:fix && yarn run package && yarn test",
     "prepare": "husky install;git config --global rebase.autosquash true",
-    "pre-commit": "lint-staged && yon run build && git add dist && yarn run generate-docs",
+    "pre-commit": "lint-staged && yon run package && git add dist && yarn run generate-docs",
     "pre-push": "yarn format:fix",
     "preversion": "echo 'Running test';yarn test",
     "generate-docs": "github-action-readme-generator && prettier --write .ghadocs.json README.md && git add .ghadocs.json README.md",
