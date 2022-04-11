@@ -38,7 +38,7 @@
     "@typescript-eslint/typescript-estree": "^5.16.0",
     "@vercel/ncc": "^0.33.3",
     "dotenv": "^16.0.0",
-    "esbuild": "^0.14.28",
+    "esbuild": "^0.14.34",
     "eslint": "^8.11.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-github": "^4.3.6",
