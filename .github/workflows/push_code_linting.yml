@@ -18,7 +18,7 @@ jobs:
           path: ~/.cache/trunk
           key: trunk-${{ runner.os }}
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3.1.1
         with:
           node-version: '16.x'
           cache: 'npm'
