@@ -19,10 +19,13 @@ async function run(): Promise<void> {
     const { context } = github;
 
     const { ref } = context.payload;
-    const github_token =
-      core.getInput('github_token', { required: false }) || process.env.GITHUB_TOKEN || null;
-    const branch = core.getInput('branch', { required: false });
-    const pr = core.getInput('pr_number', { required: false }) || context.payload.number || null;
+    const github_token: string | undefined =
+      core.getInput('github_token', { required: false }) || process.env.GITHUB_TOKEN || undefined;
+    const branch: string | undefined = core.getInput('branch', { required: false });
+    const tmpPr: number = parseInt(core.getInput('pr_number', { required: false }) ?? 0, 10);
+    const { pull_request } = context.payload;
+    const pr = pull_request && tmpPr === 0 ? pull_request.number : tmpPr;
+
     const filepath = core.getInput('filepath', { required: true })?.trim();
     const default_version = core.getInput('default_version', { required: false })?.trim();
     const tag_prefix = core.getInput('tag_prefix', { required: false })?.trim();
@@ -31,20 +34,18 @@ async function run(): Promise<void> {
     const bump: Bump = core.getInput('bump', { required: false })?.trim().toLowerCase() as Bump;
     const release_branch = core.getInput('release_branch', { required: true })?.trim();
     /*  TODO: Add v prepending */
-    const prepend_v = core.getInput('prepend_v', { required: false }) === 'true';
-    const ignore_v_when_searching =
-      core.getInput('ignore_v_when_searching', {
-        required: false,
-      }) === 'true';
+    const prepend_v = core.getBooleanInput('prepend_v', { required: false });
+    const ignore_v_when_searching = core.getBooleanInput('ignore_v_when_searching', {
+      required: false,
+    });
 
     core.debug('Loading octokit: started');
-    let octokit;
+
     if (!github_token) {
       core.setFailed('github_token not supplied');
       return;
-    } else {
-      octokit = github.getOctokit(github_token);
     }
+    const octokit = github.getOctokit(github_token);
 
     // new Octokit({
     //   auth: github_token,
@@ -54,7 +55,7 @@ async function run(): Promise<void> {
     // It's somewhat safe to assume that the most recently created release is actually latest.
     const sortTagsDefault = releases_only ? 'false' : 'true';
     const sortTags = (`${sort_tags}` || sortTagsDefault).toLowerCase() === 'true';
-    const baseBranch: string = branch || ref;
+    const baseBranch: string = branch || (ref as string);
     const br = stripRefs(baseBranch);
     const is_release_branch = br?.startsWith(release_branch) || false;
     const bump_item: Bump = !is_release_branch ? 'build' : bump;
@@ -65,8 +66,8 @@ async function run(): Promise<void> {
 
     try {
       repos = repoSplit(repository, context);
-    } catch (e) {
-      core.setFailed(`Action failed with error: ${e}`);
+    } catch (error) {
+      core.setFailed(`Action failed with error: ${error}`);
     }
     if (!repos) {
       core.setFailed('Action failed with error: No repository information available');
@@ -76,7 +77,7 @@ async function run(): Promise<void> {
     const appVersion = normalize_version(app_version(filepath), default_version);
     core.debug(`appVersion: ${appVersion}`);
     const prefix = tag_prefix || appVersion;
-    let suffix: string | null | undefined = undefined;
+    let suffix: string | undefined;
 
     if (pr) {
       suffix = `PR${pr}`;
@@ -93,7 +94,7 @@ async function run(): Promise<void> {
       releases_only,
       sortTags,
       ignore_v_when_searching,
-      octokit
+      octokit,
     );
 
     const tag_name = bumper(latestGitTag, bump_item, is_release_branch);
@@ -115,5 +116,4 @@ async function run(): Promise<void> {
     core.setFailed(`ERROR: ${error}`);
   }
 }
-
-run();
+await Promise.resolve(run());

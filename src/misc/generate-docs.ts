@@ -1,6 +1,6 @@
-import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import * as os from 'os';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
 
 //
 // SUMMARY
@@ -39,7 +39,7 @@ export function updateUsage(
   actionYamlPath = 'action.yml',
   readmePath = 'README.md',
   startToken = '<!-- start usage -->',
-  endToken = '<!-- end usage -->'
+  endToken = '<!-- end usage -->',
 ): void {
   if (!actionReference) {
     throw new Error('Parameter actionReference must not be empty');
@@ -73,15 +73,17 @@ export function updateUsage(
   const newReadme: string[] = [];
 
   // Append the beginning
-  newReadme.push(originalReadme.substr(0, startTokenIndex + startToken.length));
-
-  // Build the new usage section
-  newReadme.push('```yaml', `- uses: ${actionReference}`, '  with:');
+  newReadme.push(
+    originalReadme.slice(0, Math.max(0, startTokenIndex + startToken.length)),
+    '```yaml',
+    `- uses: ${actionReference}`,
+    '  with:',
+  );
   if (!actionYaml) {
     throw new Error('No action.yml file');
   }
 
-  const inputs = actionYaml.inputs;
+  const { inputs } = actionYaml;
   let firstInput = true;
   for (const key of Object.keys(inputs)) {
     const input = inputs[key];
@@ -94,7 +96,7 @@ export function updateUsage(
     // Constrain the width of the description
     const width = 80;
     let description = (input.description as string)
-      .trimRight()
+      .trimEnd()
       .replace(/\r\n/g, '\n') // Convert CR to LF
       .replace(/ +/g, ' ') //    Squash consecutive spaces
       .replace(/ \n/g, '\n'); //  Squash space followed by newline
@@ -102,9 +104,9 @@ export function updateUsage(
       // Longer than width? Find a space to break apart
       let segment: string = description;
       if (description.length > width) {
-        segment = description.substr(0, width + 1);
+        segment = description.slice(0, Math.max(0, width + 1));
         while (!segment.endsWith(' ') && !segment.endsWith('\n') && segment) {
-          segment = segment.substr(0, segment.length - 1);
+          segment = segment.slice(0, Math.max(0, segment.length - 1));
         }
 
         // Trimmed too much?
@@ -118,19 +120,19 @@ export function updateUsage(
       // Check for newline
       const newlineIndex = segment.indexOf('\n');
       if (newlineIndex >= 0) {
-        segment = segment.substr(0, newlineIndex + 1);
+        segment = segment.slice(0, Math.max(0, newlineIndex + 1));
       }
 
       // Append segment
-      newReadme.push(`    # ${segment}`.trimRight());
+      newReadme.push(`    # ${segment}`.trimEnd());
 
       // Remaining
-      description = description.substr(segment.length);
+      description = description.slice(segment.length);
     }
 
     if (input.default !== undefined) {
       // Append blank line if description had paragraphs
-      if ((input.description as string).trimRight().match(/\n[ ]*\r?\n/)) {
+      if (/\n *\r?\n/.test((input.description as string).trimEnd())) {
         newReadme.push('    #');
       }
 
@@ -144,10 +146,7 @@ export function updateUsage(
     firstInput = false;
   }
 
-  newReadme.push('```');
-
-  // Append the end
-  newReadme.push(originalReadme.substr(endTokenIndex));
+  newReadme.push('```', originalReadme.slice(endTokenIndex));
 
   // Write the new README
   fs.writeFileSync(readmePath, newReadme.join(os.EOL));

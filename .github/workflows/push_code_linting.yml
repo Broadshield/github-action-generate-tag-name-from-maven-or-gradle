@@ -1,13 +1,32 @@
 name: Code Linting
 on: [pull_request]
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
 jobs:
-  eslint:
-    name: runner / eslint
+  trunk_check:
+    name: Trunk Check Runner
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v1
-      - name: eslint
-        uses: reviewdog/action-eslint@v1
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cache Linters/Formatters
+        uses: actions/cache@v3
         with:
-          reporter: github-pr-review # Change reporter.
-          # eslint_flags: 'src/'
+          path: ~/.cache/trunk
+          key: trunk-${{ runner.os }}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          cache: 'npm'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Trunk Check
+        uses: trunk-io/trunk-action@main

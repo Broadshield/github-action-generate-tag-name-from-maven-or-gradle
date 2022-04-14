@@ -3,25 +3,62 @@
   "eslint.codeAction.showDocumentation": {
     "enable": true
   },
-  "editor.defaultFormatter": "Trunk.io",
   "editor.formatOnSave": true,
   "eslint.alwaysShowStatus": true,
-  "eslint.validate": ["javascript", "typescript"],
   "[json]": {
     "editor.defaultFormatter": "Trunk.io"
+  },
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "javascriptreact",
+    "typescriptreact",
+    "html",
+    "json",
+    "yaml",
+    "yml",
+    "markdown",
+    "graphql"
+  ],
+  "eslint.options": {
+    "extensions": [".js", ".ts", "html", "json", "yaml", "yml", "md", "graphql"]
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
   },
   "[typescript]": {
     "editor.codeActionsOnSave": {
       "source.fixAll.eslint": true
     }
   },
-  "[javascript]": {
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true
-    }
-  },
-  "cSpell.words": ["pfile"],
-  "[yaml]": {
-    "editor.defaultFormatter": "Trunk.io"
-  }
+  "yaml.customTags": [
+    "!Equals sequence",
+    "!FindInMap sequence",
+    "!GetAtt",
+    "!GetAZs",
+    "!ImportValue",
+    "!Join sequence",
+    "!Ref",
+    "!Select sequence",
+    "!Split sequence",
+    "!Sub",
+    "!And",
+    "!And sequence",
+    "!If",
+    "!If sequence",
+    "!Not",
+    "!Not sequence",
+    "!Equals",
+    "!Or",
+    "!Or sequence",
+    "!FindInMap",
+    "!Base64",
+    "!Join",
+    "!Cidr",
+    "!Sub sequence",
+    "!ImportValue sequence",
+    "!Select",
+    "!Split"
+  ],
+  "cSpell.words": ["pfile"]
 }
