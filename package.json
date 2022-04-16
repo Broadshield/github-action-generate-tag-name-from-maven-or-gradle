@@ -99,12 +99,12 @@
     "lint:fix": "yarn run format:fix;yarn run lint --fix",
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "package": "yarn run build",
-    "build": "rimraf lib dist;yarn run typecheck;node .github/scripts/esbuild.cjs",
+    "build": "rimraf lib lib;yarn run typecheck;node .github/scripts/esbuild.cjs",
     "build-docker": "yarn run build-debug;docker build -t github-action-generate-tag-name-from-maven-or-gradle .",
-    "release": "yarn run lint:fix && yarn run typecheck && yarn run package && git add dist",
+    "release": "yarn run lint:fix && yarn run typecheck && yarn run package && git add lib",
     "all": "yarn run format:fix && yarn run lint:fix && yarn run package && yarn test",
     "prepare": "husky install;git config --global rebase.autosquash true",
-    "pre-commit": "lint-staged && yon run package && git add dist && yarn run generate-docs",
+    "pre-commit": "lint-staged && yon run package && git add lib && yarn run generate-docs",
     "pre-push": "yarn format:fix",
     "preversion": "echo 'Running test';yarn test",
     "generate-docs": "github-action-readme-generator && prettier --write .ghadocs.json README.md && git add .ghadocs.json README.md",
@@ -116,13 +116,9 @@
     "classNameTemplate": "{classname}",
     "titleTemplate": "{title}"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "yarn run release; git add dist"
-    }
-  },
   "lint-staged": {
     "__tests__/**/*.js": "eslint --cache --fix",
-    "*.ts": ["eslint --cache --fix"]
+    "*.ts": ["eslint --cache --fix"],
+    "*.{html,js,json,jsx,md,ts,tsx,yaml,yml}": "eslint --cache --fix"
   }
 }
