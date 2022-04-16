@@ -3,7 +3,6 @@ lib/
 node_modules/
 jest.config.ts
 .eslintrc.js
-__tests__/
 *.lock
 tsconfig.tsbuildinfo
 yarn-error.log

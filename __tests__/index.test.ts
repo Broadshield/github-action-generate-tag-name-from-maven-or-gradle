@@ -7,11 +7,14 @@ import { basename, normalize_version, repoSplit, stripRefs } from '../src/utils'
 import { VersionObject } from '../src/versionObject';
 import { VersionObjectBuilder } from '../src/versionObjectBuilder';
 
-const inputs = {} as any;
+interface InputsInterface {
+  [key: string]: string;
+}
+const inputs: InputsInterface = {} as InputsInterface;
 
 describe('Get Versions', () => {
   beforeAll(() => {
-    jest.setTimeout(50000);
+    jest.setTimeout(50_000);
     // Mock getInput
     jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
       return inputs[name];
@@ -88,52 +91,52 @@ describe('Get Versions', () => {
   });
 
   test(`VersionObject given string v0.0.41-org.flywaydb.flyway-7.6.0.1 should match ${JSON.stringify(
-    version13
+    version13,
   )}`, () => {
     expect(new VersionObject('v0.0.41-org.flywaydb.flyway-7.6.0.1').data).toStrictEqual(
-      version13.data
+      version13.data,
     );
   });
   test(`VersionObject given string v0.0.41-org.flywaydb.flyway-7.6.0.1 should return the same`, () => {
-    expect(new VersionObject('v0.0.41-org.flywaydb.flyway-7.6.0.1').toString()).toStrictEqual(
-      'v0.0.41-org.flywaydb.flyway-7.6.0.1'
+    expect(new VersionObject('v0.0.41-org.flywaydb.flyway-7.6.0.1').toString()).toBe(
+      'v0.0.41-org.flywaydb.flyway-7.6.0.1',
     );
   });
   test(`new VersionObject given string 2.3.1 should match ${JSON.stringify(version1.data)}`, () => {
     expect(new VersionObject('2.3.1').data).toStrictEqual(version1.data);
   });
   test(`new VersionObject given string 0.0.4 should match ${JSON.stringify(
-    version12.data
+    version12.data,
   )}`, () => {
     expect(new VersionObject('0.0.4').data).toStrictEqual(version12.data);
   });
   test(`new VersionObject given string v2.3.1 should match ${JSON.stringify(
-    version2.data
+    version2.data,
   )}`, () => {
     expect(new VersionObject('v2.3.1').data).toStrictEqual(version2.data);
   });
   test(`new VersionObject given string v2.3.1-PR1234+1 should match ${JSON.stringify(
-    version3.data
+    version3.data,
   )}`, () => {
     expect(new VersionObject('v2.3.1-PR1234+1').data).toStrictEqual(version3.data);
   });
 
   test(`new VersionObject given string v2.3.1-PR1234+45 should match ${JSON.stringify(
-    version4.data
+    version4.data,
   )}`, () => {
     expect(new VersionObject('v2.3.1-PR1234+45').data).toStrictEqual(version4.data);
   });
 
   test(`versionObj.toString() given string ${JSON.stringify(
-    version4
+    version4,
   )} should match v2.3.1-PR1234+45`, () => {
-    expect(version4.toString()).toStrictEqual('v2.3.1-PR1234+45');
+    expect(version4.toString()).toBe('v2.3.1-PR1234+45');
   });
 
   test(`versionObj.toString() given string ${JSON.stringify(
-    version5
+    version5,
   )} should match v2.22.0+24`, () => {
-    expect(version5.toString()).toStrictEqual('v2.22.0+24');
+    expect(version5.toString()).toBe('v2.22.0+24');
   });
 });
 
@@ -164,7 +167,7 @@ describe('stripRefs utility', () => {
 
   test('take refs/heads/feature/UNICORN-1234-new-thing and returns feature/UNICORN-1234-new-thing', () => {
     expect(stripRefs('refs/heads/feature/UNICORN-1234-new-thing')).toBe(
-      'feature/UNICORN-1234-new-thing'
+      'feature/UNICORN-1234-new-thing',
     );
   });
 });
@@ -200,7 +203,7 @@ describe('repoSplit utility', () => {
   });
 
   test(`take null, has environment variable GITHUB_REPOSITORY available and returns object ${JSON.stringify(
-    result
+    result,
   )}`, () => {
     process.env.GITHUB_REPOSITORY = repository;
     expect(repoSplit(null, github.context)).toStrictEqual(result);

@@ -2,7 +2,8 @@
   "name": "@Broadshield/github-action-generate-tag-name-from-maven-or-gradle",
   "version": "1.0.5",
   "description": "Generates a Git tag name for Pull Releases and Branches based on the application version in pom.xml or gradle.settings files",
-  "main": "dist/index.js",
+  "main": "lib/main.js",
+  "type": "module",
   "repository": {
     "type": "git",
     "url:": "git@github.com:Broadshield/github-action-generate-tag-name-from-maven-or-gradle.git"
@@ -15,7 +16,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@Broadshield/prettier-config": "github:Broadshield/prettier-config",
     "@actions/core": "^1.6.0",
     "@actions/github": "^5.0.0",
     "@octokit/rest": "^18.12.0",
@@ -23,6 +23,7 @@
     "java-properties": "^1.0.2"
   },
   "devDependencies": {
+    "@Broadshield/prettier-config": "github:Broadshield/prettier-config",
     "@prettier/plugin-ruby": "^2.1.0",
     "@prettier/plugin-xml": "^2.0.1",
     "@tsconfig/node16": "^1.0.2",
@@ -32,7 +33,6 @@
     "@typescript-eslint/eslint-plugin": "^5.16.0",
     "@typescript-eslint/parser": "^5.16.0",
     "@typescript-eslint/typescript-estree": "^5.16.0",
-    "@vercel/ncc": "^0.33.3",
     "dotenv": "^16.0.0",
     "esbuild": "^0.14.28",
     "eslint": "^8.13.0",
@@ -98,7 +98,8 @@
     "lint": "eslint --format 'visualstudio' --color --ext .html,.js,.json,.jsx,.md,.ts,.tsx,.yaml,.yml .",
     "lint:fix": "yarn run format:fix;yarn run lint --fix",
     "typecheck": "tsc --noEmit --project tsconfig.json",
-    "package": "rimraf lib dist;esbuild src/main.ts --bundle --sourcemap --platform=node --outfile=lib/main.js --target=node16 --format=cjs",
+    "package": "yarn run build",
+    "build": "rimraf lib dist;yarn run typecheck;node .github/scripts/esbuild.cjs",
     "build-docker": "yarn run build-debug;docker build -t github-action-generate-tag-name-from-maven-or-gradle .",
     "release": "yarn run lint:fix && yarn run typecheck && yarn run package && git add dist",
     "all": "yarn run format:fix && yarn run lint:fix && yarn run package && yarn test",

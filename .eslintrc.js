@@ -33,7 +33,7 @@ module.exports = {
       parserOptions: {
         ecmaVersion: 13,
         sourceType: 'module',
-        project: './tsconfig.json',
+        project: ['./tsconfig.json', '__tests__/tsconfig.json'],
       },
       // settings: {
       //     'import/resolver': {
