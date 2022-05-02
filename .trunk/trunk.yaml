@@ -17,3 +17,6 @@ lint:
         - .git/**
         - dist/**
         - lib/**
+        - .yarn/**
+        - .husky/**
+        - .vscode/**

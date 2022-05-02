@@ -1,20 +1,38 @@
 {
+  "private": true,
   "name": "@Broadshield/github-action-generate-tag-name-from-maven-or-gradle",
   "version": "1.0.5",
   "description": "Generates a Git tag name for Pull Releases and Branches based on the application version in pom.xml or gradle.settings files",
-  "main": "lib/main.js",
-  "type": "module",
+  "license": "MIT",
+  "author": "Jamie Nelson <jamie@wearsafe.com>",
   "repository": {
     "type": "git",
     "url:": "git@github.com:Broadshield/github-action-generate-tag-name-from-maven-or-gradle.git"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+  "type": "module",
+  "main": "lib/main.js",
+  "scripts": {
+    "pre-commit": "lint-staged && yon run package && git add lib && yarn run generate-docs",
+    "pre-push": "yarn format:fix",
+    "all": "yarn run format:fix && yarn run lint:fix && yarn run package && yarn test",
+    "build": "rimraf lib;yarn run typecheck;node .github/scripts/esbuild.cjs",
+    "build-docker": "yarn run build-debug;docker build -t github-action-generate-tag-name-from-maven-or-gradle .",
+    "format": "trunk check",
+    "format:fix": "trunk fmt",
+    "generate-docs": "github-action-readme-generator && prettier --write .ghadocs.json README.md && git add .ghadocs.json README.md",
+    "lint": "eslint --format 'visualstudio' --color --ext .html,.js,.json,.jsx,.md,.ts,.tsx,.yaml,.yml .",
+    "lint:fix": "yarn run format:fix;yarn run lint --fix",
+    "package": "yarn run build",
+    "prepare": "husky install;git config --global rebase.autosquash true",
+    "release": "yarn run lint:fix && yarn run typecheck && yarn run package && git add lib",
+    "start": "node lib/main.ts",
+    "test": "NODE_ENV=testing jest",
+    "test-ci": "NODE_ENV=testing jest --ci --reporters=default --reporters=jest-junit",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "preversion": "echo 'Running test';yarn test",
+    "version": "echo 'Run versioning commands';yarn generate-docs;echo \"::set-output name=tag::v${npm_package_version}\"",
+    "postversion": "echo 'Running post versioning commands';git push --tags -f && git push -f && echo \"Successfully released version $npm_package_version!\""
   },
-  "keywords": ["actions", "node", "maven", "gradle", "tagging"],
-  "author": "Jamie Nelson <jamie@wearsafe.com>",
-  "license": "MIT",
-  "private": true,
   "dependencies": {
     "@actions/core": "^1.6.0",
     "@actions/github": "^5.0.0",
@@ -78,6 +96,7 @@
     "js-yaml": "^4.1.0",
     "lint-staged": "^12.3.7",
     "prettier": "^2.6.2",
+    "prettier-package-json": "^2.6.3",
     "prettier-plugin-java": "^1.6.1",
     "prettier-plugin-properties": "^0.1.0",
     "prettier-plugin-sh": "^0.10.1",
@@ -89,27 +108,15 @@
     "typescript-eslint-language-service": "^5.0.0",
     "yarn-or-npm": "^3.0.1"
   },
-  "scripts": {
-    "test": "NODE_ENV=testing jest",
-    "test-ci": "NODE_ENV=testing jest --ci --reporters=default --reporters=jest-junit",
-    "start": "node lib/main.ts",
-    "format:fix": "trunk fmt",
-    "format": "trunk check",
-    "lint": "eslint --format 'visualstudio' --color --ext .html,.js,.json,.jsx,.md,.ts,.tsx,.yaml,.yml .",
-    "lint:fix": "yarn run format:fix;yarn run lint --fix",
-    "typecheck": "tsc --noEmit --project tsconfig.json",
-    "package": "yarn run build",
-    "build": "rimraf lib lib;yarn run typecheck;node .github/scripts/esbuild.cjs",
-    "build-docker": "yarn run build-debug;docker build -t github-action-generate-tag-name-from-maven-or-gradle .",
-    "release": "yarn run lint:fix && yarn run typecheck && yarn run package && git add lib",
-    "all": "yarn run format:fix && yarn run lint:fix && yarn run package && yarn test",
-    "prepare": "husky install;git config --global rebase.autosquash true",
-    "pre-commit": "lint-staged && yon run package && git add lib && yarn run generate-docs",
-    "pre-push": "yarn format:fix",
-    "preversion": "echo 'Running test';yarn test",
-    "generate-docs": "github-action-readme-generator && prettier --write .ghadocs.json README.md && git add .ghadocs.json README.md",
-    "version": "echo 'Run versioning commands';yarn generate-docs;echo \"::set-output name=tag::v${npm_package_version}\"",
-    "postversion": "echo 'Running post versioning commands';git push --tags -f && git push -f && echo \"Successfully released version $npm_package_version!\""
+  "keywords": [
+    "actions",
+    "gradle",
+    "maven",
+    "node",
+    "tagging"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "jest-junit": {
     "suiteNameTemplate": "{filepath}",
@@ -118,7 +125,13 @@
   },
   "lint-staged": {
     "__tests__/**/*.js": "eslint --cache --fix",
-    "*.ts": ["eslint --cache --fix"],
+    "package.json": [
+      "prettier-package-json --write",
+      "git add"
+    ],
+    "*.ts": [
+      "eslint --cache --fix"
+    ],
     "*.{html,js,json,jsx,md,ts,tsx,yaml,yml}": "eslint --cache --fix"
   }
 }
